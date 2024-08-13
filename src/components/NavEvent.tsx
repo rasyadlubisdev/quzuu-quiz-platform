@@ -2,10 +2,10 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 
 const NavEvent = () => {
-    const router = useRouter()
+    const pathname = usePathname()
     // console.log(router)
 
     return (
@@ -14,8 +14,8 @@ const NavEvent = () => {
                 <Image src="/assets/img/promotor-TROC.png" alt="TROC" layout="responsive" width={246} height={94} />
             </div>
             <div className="menu-links w-full">
-                <Link href="/event-details/1" className="block w-full py-1.5 px-12 bg-secondary text-white font-semibold">Overview</Link>
-                <Link href={`/event-details/1/start`} className="block w-full py-1.5 px-12 text-secondary">Start The Quiz</Link>
+                <Link href="/event-details/1" className={`block w-full py-1.5 px-12 ${pathname == "/event-details/1" ? "bg-secondary text-white" : ""}  font-semibold`}>Overview</Link>
+                <Link href={`/event-details/1/start`} className={`block w-full py-1.5 px-12 ${pathname == "/event-details/1/start" ? "bg-secondary text-white" : "text-secondary"}`}>Start The Quiz</Link>
                 <Link href="/" className="block w-full py-1.5 px-12">Announcement</Link>
                 <Link href="/" className="block w-full py-1.5 px-12">Scoreboard</Link>
             </div>

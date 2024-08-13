@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "../ui/button"
 import { Input } from "@/components/ui/input"
+import { useRouter } from "next/navigation"
 
 import {
   ColumnDef,
@@ -47,16 +48,18 @@ export function DataTable<TData, TValue>({
         }
     })
 
+    const router = useRouter()
+
   return (
     <div className="col-span-2 text-slate-800">
         <div className="header-group flex items-center justify-between">
             <h3 className="text-xl font-semibold basis-1/3">Events</h3>
             <div className="flex items-center justify-end py-4 basis-2/3">
                 <Input
-                    placeholder="Filter emails..."
-                    value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+                    placeholder="Search events..."
+                    value={(table.getColumn("eventTitle")?.getFilterValue() as string) ?? ""}
                     onChange={(event) =>
-                        table.getColumn("email")?.setFilterValue(event.target.value)
+                        table.getColumn("eventTitle")?.setFilterValue(event.target.value)
                     }
                     className="max-w-sm"
                 />
@@ -88,6 +91,7 @@ export function DataTable<TData, TValue>({
                     <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && "selected"}
+                        onClick={() => router.push("/event-details/1")}
                     >
                         {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
