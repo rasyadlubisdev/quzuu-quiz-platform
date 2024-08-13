@@ -46,14 +46,12 @@ export default async function Home() {
       <section className="greetings py-11">
         <h1 className="text-2xl font-normal">👋 Welcome Back <span className="font-bold">Abdan Hafidz</span></h1>
       </section>
-      <section>
-        <div className="grid grid-cols-3 gap-x-8">
-          <DataTable columns={columns} data={data} />
-          <aside>
-            <CardPrivateEvent />
-            <CardInformation />
-          </aside>
-        </div>
+      <section className="pb-10 grid grid-cols-3 gap-x-8">
+        <DataTable columns={columns} data={data} />
+        <aside>
+          <CardPrivateEvent />
+          <CardInformation />
+        </aside>
       </section>
     </main>
   );
