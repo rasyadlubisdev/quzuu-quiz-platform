@@ -52,7 +52,7 @@ export default async function Home() {
       <section className="greetings py-11">
         <h1 className="text-2xl font-normal">👋 Welcome Back <span className="font-bold">Abdan Hafidz</span></h1>
       </section>
-      <section className="pb-10 grid grid-cols-3 gap-x-8">
+      <section className="pb-10 grid grid-cols-1 md:grid-cols-3 gap-y-8 md:gap-x-8">
         <DataTable columns={columns} data={data} />
         <aside>
           <CardPrivateEvent />

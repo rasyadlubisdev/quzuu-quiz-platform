@@ -17,11 +17,19 @@ const config = {
         "2xl": "1400px",
       },
     },
+    screens: {
+      'sm': '640px',
+      'md': '768px',
+      "tablet": "900px",
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        ring: "#6F61C0",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
