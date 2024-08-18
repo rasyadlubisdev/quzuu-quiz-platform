@@ -1,4 +1,4 @@
-import { Payment, columns } from "@/components/table-events/columns"
+import { Events, columns } from "@/components/table-events/columns"
 import { DataTable } from "@/components/table-events/DataTable"
 import CardPrivateEvent from "@/components/CardPrivateEvent"
 import CardInformation from "@/components/CardInformation"
@@ -9,7 +9,7 @@ import CardInformation from "@/components/CardInformation"
 //   { id: 3, name: 'Alice Johnson', email: 'alice@example.com', role: 'Editor' },
 // ]
 
-async function getData(): Promise<Payment[]> {
+async function getData(): Promise<Events[]> {
   return [
     {
       id: "728ed52f",
