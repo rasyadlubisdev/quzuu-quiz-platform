@@ -22,6 +22,7 @@ const config = {
       'md': '768px',
       "tablet": "900px",
       'lg': '1024px',
+      'laptop': '1118px',
       'xl': '1280px',
       '2xl': '1536px',
     },
@@ -29,7 +30,7 @@ const config = {
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
-        ring: "#6F61C0",
+        // ring: "#6F61C0",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {

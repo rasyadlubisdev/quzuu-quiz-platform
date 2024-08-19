@@ -8,7 +8,8 @@ const CardPrivateEvent = () => {
             <div className="text-base font-medium mb-3.5 text-slate-500">Enter the Event ID</div>
             <div className="flex flex-row md:flex-col tablet:flex-row">
                 <Input
-                    placeholder="Enter code..."
+                    placeholder="Enter code..." 
+                    className="ring-primary"
                 />
                 <Button className="ml-4 md:mt-4 md:ml-0 tablet:ml-4 tablet:mt-0">Enroll</Button>
             </div>

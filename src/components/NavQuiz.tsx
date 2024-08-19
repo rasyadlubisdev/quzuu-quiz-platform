@@ -13,7 +13,7 @@ const NavQuiz = () => {
             <div className="timer px-6">
                 <h3 className="text-base font-bold text-secondary mb-1">Time Left</h3>
                 <div className="run-timer py-3 px-5 rounded-2xl border border-secondary">
-                    <h1 className="text-4xl font-bold text-secondary text-center">01 : 47 : 40</h1>
+                    <h1 className="text-3xl laptop:text-4xl font-bold text-secondary text-center">01 : 47 : 40</h1>
                 </div>
             </div>
             <div className="questions-number mt-5 flex flex-wrap justify-center">
