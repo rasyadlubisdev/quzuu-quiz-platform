@@ -1,7 +1,14 @@
+"use client";
+
+import { usePathname } from "next/navigation"
 import NavEvent from "@/components/NavEvent"
 import SectionQuiz from "@/components/SectionQuiz"
+import Link from "next/link"
 
 const StartQuiz = () => {
+
+    const pathname = usePathname()
+
     return (
         <main className="start-quiz-page container bg-slate-100 text-slate-950 min-h-screen">
             <section className="head-info py-8">
@@ -14,7 +21,7 @@ const StartQuiz = () => {
                     
                 </div> */}
                 <div className="max-h-screen overflow-y-auto col-span-2 p-2">
-                    <SectionQuiz />
+                    <Link href={`${pathname}/analitika`}><SectionQuiz /></Link>
                     <SectionQuiz />
                     <SectionQuiz />
                     <SectionQuiz />

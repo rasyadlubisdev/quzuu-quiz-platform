@@ -91,7 +91,8 @@ export function DataTable<TData, TValue>({
                     <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && "selected"}
-                        onClick={() => router.push("/event-details/1")}
+                        onClick={() => router.push("/event-details/1")} 
+                        className="hover:bg-violet-100 cursor-pointer"
                     >
                         {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>

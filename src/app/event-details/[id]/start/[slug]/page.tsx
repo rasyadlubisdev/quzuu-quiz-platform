@@ -1,11 +1,19 @@
 "use client"
 
+import { useSearchParams } from "next/navigation"
 import NavQuiz from "@/components/NavQuiz"
 import RadioAnswer from "@/components/RadioAnswer"
 import CheckboxAnswer from "@/components/CheckboxAnswer"
 import ShortAnswer from "@/components/ShortAnswer"
+// import DraggableAnser from "@/components/DraggableAnswer"
+import ClickChipAnswer from "@/components/ClickChipAnswer"
+import CodeShortAnswer from "@/components/CodeShortAnswer"
+import FileAnswer from "@/components/FileAnswer"
 
 const QuizPage = () => {
+    const searchParams = useSearchParams()
+    const numberPage = searchParams.get("num")
+    console.log(numberPage)
     const question = `Misalkan Pak Dengklek mempunyai sebuah potongan program
 
 int x = 9;
@@ -36,6 +44,23 @@ Keluaran program di atas adalah ...
         { id: 3, order: 'C', label: 'Keluaran program adalah 4' },
     ]
 
+    function renderTypeQuestion() {
+        switch(numberPage) {
+            case "2":
+                return <CheckboxAnswer options={options} />
+            case "3":
+                return <ShortAnswer />
+            case "4":
+                return <ClickChipAnswer />
+            case "5":
+                return <CodeShortAnswer />
+            case "6":
+                return <FileAnswer />
+            default:
+                return <RadioAnswer options={options} />
+        }
+    }
+
     return (
         <main className="quiz-page container bg-slate-100 text-slate-950 min-h-screen">
             <section className="head-info py-8">
@@ -51,7 +76,9 @@ Keluaran program di atas adalah ...
                     </div>
                     <div className="select-answer-group mt-8">
                         {/* <RadioAnswer options={options} /> */}
-                        <ShortAnswer />
+                        {/* <ShortAnswer /> */}
+                        {/* <ClickChipAnswer /> */}
+                        {renderTypeQuestion()}
                     </div>
                 </div>
             </section>
