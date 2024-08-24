@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "./start.module.css"
 import { usePathname } from "next/navigation"
 import NavEvent from "@/components/NavEvent"
 import SectionQuiz from "@/components/SectionQuiz"
@@ -20,7 +21,7 @@ const StartQuiz = () => {
                 {/* <div className="display-event-overview col-span-2 bg-white p-9 rounded-3xl text-slate-800 shadow">
                     
                 </div> */}
-                <div className="max-h-screen overflow-y-auto col-span-2 p-2">
+                <div className={`${styles["card-section-quiz"]} max-h-screen overflow-y-auto col-span-2 p-2`}>
                     <Link href={`${pathname}/analitika`}><SectionQuiz /></Link>
                     <SectionQuiz />
                     <SectionQuiz />
