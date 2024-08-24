@@ -1,23 +1,52 @@
-import Link from "next/link"
+"use client"
 
-const Navbar = () => {
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { Menu } from 'lucide-react';
+
+const Navbar: React.FC = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const menus = [
+        { title: "Home", path: "/" },
+        { title: "Event", path: "/event" },
+        { title: "Learn", path: "/learn" },
+        { title: "Problemset", path: "/problemset" },
+        { title: "Submission", path: "/submission" },
+        { title: "Leaderboard", path: "/leaderboard" },
+    ];
+
     return (
-        <nav className="navbar w-screen py-5 bg-primary text-white">
-            <div className="container flex items-center">
-                <div className="nav-logo basis-1/4">
-                    <h1 className="text-4xl font-semibold">Quzuu</h1>
+        <>
+            <nav className="navbar fixed z-[100] w-screen py-5 bg-primary text-white border-b md:border-0">
+                <div className="items-center px-4 container mx-auto md:flex md:px-8">
+                    <div className="flex items-center justify-between md:block basis-1/4">
+                        <Link href="/">
+                            <h1 className="text-4xl font-semibold">Quzuu</h1>
+                        </Link>
+                        <div className="md:hidden">
+                            <button
+                                className="text-white outline-none p-2 rounded-md focus:border-gray-400 focus:border"
+                                onClick={() => setIsOpen(!isOpen)}
+                            >
+                                <Menu />
+                            </button>
+                        </div>
+                    </div>
+                    <div className={`basis-3/4 flex-1 justify-self-center pb-3 mt-8 md:block md:pb-0 md:mt-0 ${isOpen ? "block" : "hidden"}`}>
+                        <ul className="flex flex-col md:flex-row justify-center md:justify-end items-center space-y-8 md:flex md:space-x-6 md:space-y-0">
+                            {menus.map((item, idx) => (
+                                <li key={idx} className="text-white hover:text-indigo-200">
+                                    <Link href={item.path}>{item.title}</Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
-                <div className="nav-links basis-3/4 flex justify-between">
-                    <Link href="/" className="text-lg font-medium">Home</Link>
-                    <Link href="/" className="text-lg font-medium">Event</Link>
-                    <Link href="/" className="text-lg font-medium">Learn</Link>
-                    <Link href="/" className="text-lg font-medium">Problemset</Link>
-                    <Link href="/" className="text-lg font-medium">Submission</Link>
-                    <Link href="/" className="text-lg font-medium">Leaderboard</Link>
-                </div>
-            </div>
-        </nav>
-    )
-}
+            </nav>
+            <div style={{ paddingTop: "80px" }}></div>
+        </>
+    );
+};
 
-export default Navbar
+export default Navbar;
