@@ -9,6 +9,7 @@ import ShortAnswer from "@/components/ShortAnswer"
 import ClickChipAnswer from "@/components/ClickChipAnswer"
 import CodeShortAnswer from "@/components/CodeShortAnswer"
 import FileAnswer from "@/components/FileAnswer"
+import TrueFalseAnswer from "@/components/TrueFalseAnswer"
 
 const QuizPage = () => {
     const searchParams = useSearchParams()
@@ -44,6 +45,14 @@ Keluaran program di atas adalah ...
         { id: 3, order: 'C', label: 'Keluaran program adalah 4' },
     ]
 
+    const tableStatements = [
+        { id: 1, statement: 'Berdasarkan soal tersebut, Pak Dengklek mempunyai 250 bebek dan 100 ayam jantan.' },
+        { id: 2, statement: 'Berdasarkan soal tersebut, Pak Dengklek mempunyai 250 bebek dan 100 ayam jantan.' },
+        { id: 3, statement: 'Berdasarkan soal tersebut, Pak Dengklek mempunyai 250 bebek dan 100 ayam jantan.' },
+        { id: 4, statement: 'Berdasarkan soal tersebut, Pak Dengklek mempunyai 250 bebek dan 100 ayam jantan.' },
+        { id: 5, statement: 'Berdasarkan soal tersebut, Pak Dengklek mempunyai 250 bebek dan 100 ayam jantan.' },
+    ]
+
     function renderTypeQuestion() {
         switch(numberPage) {
             case "2":
@@ -56,6 +65,8 @@ Keluaran program di atas adalah ...
                 return <CodeShortAnswer />
             case "6":
                 return <FileAnswer />
+            case "7":
+                return <TrueFalseAnswer tableStatements={tableStatements} />
             default:
                 return <RadioAnswer options={options} />
         }
