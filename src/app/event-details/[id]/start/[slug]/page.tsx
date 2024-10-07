@@ -10,6 +10,7 @@ import ClickChipAnswer from "@/components/ClickChipAnswer"
 import CodeShortAnswer from "@/components/CodeShortAnswer"
 import FileAnswer from "@/components/FileAnswer"
 import TrueFalseAnswer from "@/components/TrueFalseAnswer"
+import CodeEditorAnswer from "@/components/CodeEditorAnswer"
 
 const QuizPage = () => {
     const searchParams = useSearchParams()
@@ -67,6 +68,8 @@ Keluaran program di atas adalah ...
                 return <FileAnswer />
             case "7":
                 return <TrueFalseAnswer tableStatements={tableStatements} />
+            case "8":
+                return <CodeEditorAnswer />
             default:
                 return <RadioAnswer options={options} />
         }
