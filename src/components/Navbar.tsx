@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 const Navbar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -16,35 +17,44 @@ const Navbar: React.FC = () => {
         { title: "Leaderboard", path: "/leaderboard" },
     ];
 
+    const pathname = usePathname();
+    const noNavbarRoutes = ['/login'];
+
     return (
         <>
-            <nav className="navbar fixed z-[100] w-screen py-5 bg-primary text-white border-b md:border-0">
-                <div className="items-center px-4 container mx-auto md:flex md:px-8">
-                    <div className="flex items-center justify-between md:block basis-1/4">
-                        <Link href="/">
-                            <h1 className="text-4xl font-semibold">Quzuu</h1>
-                        </Link>
-                        <div className="md:hidden">
-                            <button
-                                className="text-white outline-none p-2 rounded-md focus:border-gray-400 focus:border"
-                                onClick={() => setIsOpen(!isOpen)}
-                            >
-                                <Menu />
-                            </button>
+        {
+            !noNavbarRoutes.includes(pathname) ?
+            (<>
+                <nav className="navbar fixed z-[100] w-screen py-5 bg-primary text-white border-b md:border-0">
+                    <div className="items-center px-4 container mx-auto md:flex md:px-8">
+                        <div className="flex items-center justify-between md:block basis-1/4">
+                            <Link href="/">
+                                <h1 className="text-4xl font-semibold">Quzuu</h1>
+                            </Link>
+                            <div className="md:hidden">
+                                <button
+                                    className="text-white outline-none p-2 rounded-md focus:border-gray-400 focus:border"
+                                    onClick={() => setIsOpen(!isOpen)}
+                                >
+                                    <Menu />
+                                </button>
+                            </div>
+                        </div>
+                        <div className={`basis-3/4 flex-1 justify-self-center pb-3 mt-8 md:block md:pb-0 md:mt-0 ${isOpen ? "block" : "hidden"}`}>
+                            <ul className="flex flex-col md:flex-row justify-center md:justify-end items-center space-y-8 md:flex md:space-x-6 md:space-y-0">
+                                {menus.map((item, idx) => (
+                                    <li key={idx} className="text-white hover:text-indigo-200">
+                                        <Link href={item.path}>{item.title}</Link>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     </div>
-                    <div className={`basis-3/4 flex-1 justify-self-center pb-3 mt-8 md:block md:pb-0 md:mt-0 ${isOpen ? "block" : "hidden"}`}>
-                        <ul className="flex flex-col md:flex-row justify-center md:justify-end items-center space-y-8 md:flex md:space-x-6 md:space-y-0">
-                            {menus.map((item, idx) => (
-                                <li key={idx} className="text-white hover:text-indigo-200">
-                                    <Link href={item.path}>{item.title}</Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-            <div style={{ paddingTop: "80px" }}></div>
+                </nav>
+                <div style={{ paddingTop: "80px" }}></div>
+            </>) :
+            <></>
+        }
         </>
     );
 };
