@@ -1,8 +1,10 @@
-'use client'
+"use client"
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic"
 
-const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
+const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+})
 
 const Editor = () => {
   return (
@@ -11,7 +13,7 @@ const Editor = () => {
       defaultLanguage="typescript"
       defaultValue="// some comment"
     />
-  );
-};
+  )
+}
 
-export default Editor;
+export default Editor

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {}
 
-export default nextConfig;
+export default nextConfig
 
 // const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 // const withTM = require("next-transpile-modules")([
@@ -47,4 +47,3 @@ export default nextConfig;
 //     return config;
 //   }
 // });
-

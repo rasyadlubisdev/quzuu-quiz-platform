@@ -1,27 +1,29 @@
 import React from "react"
-import { DragDropContext, Droppable, Draggable, resetServerContext } from "react-beautiful-dnd"
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  resetServerContext,
+} from "react-beautiful-dnd"
 
 const initialAnswers = [
   { id: "1", content: "int = 5000;" },
   { id: "2", content: "jeruk = 2000;" },
   { id: "3", content: "int anggur = 1500;" },
-];
+]
 
 const DraggableAnser: React.FC = () => {
-
-
-    
-  const [answers, setAnswers] = React.useState(initialAnswers);
+  const [answers, setAnswers] = React.useState(initialAnswers)
 
   const handleOnDragEnd = (result: any) => {
-    if (!result.destination) return;
+    if (!result.destination) return
 
-    const items = Array.from(answers);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    const items = Array.from(answers)
+    const [reorderedItem] = items.splice(result.source.index, 1)
+    items.splice(result.destination.index, 0, reorderedItem)
 
-    setAnswers(items);
-  };
+    setAnswers(items)
+  }
   console.log("CHECK", answers)
 
   return (
@@ -38,21 +40,22 @@ total_harga = apel + jeruk + anggur;`}
 
       <DragDropContext onDragEnd={handleOnDragEnd}>
         <Droppable droppableId="questions">
-        {(provided) => (
+          {(provided) => (
             <div
-                className="flex h-44 w-full"
-                ref={provided.innerRef}
-                {...provided.droppableProps}
+              className="flex h-44 w-full"
+              ref={provided.innerRef}
+              {...provided.droppableProps}
             >
-                <h2 className="text-white">I am a droppable!</h2>
-                {provided.placeholder}
+              <h2 className="text-white">I am a droppable!</h2>
+              {provided.placeholder}
             </div>
-        )}
+          )}
         </Droppable>
         <Droppable droppableId="answers">
           {(provided) => (
             <div
-              className="flex space-x-4" id="drag-here"
+              className="flex space-x-4"
+              id="drag-here"
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
@@ -72,13 +75,13 @@ total_harga = apel + jeruk + anggur;`}
               ))} */}
               <Draggable draggableId="draggable-1" index={0}>
                 {(provided, snapshot) => (
-                    <div
+                  <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    >
+                  >
                     <h4 className="text-white">My draggable</h4>
-                    </div>
+                  </div>
                 )}
               </Draggable>
               {provided.placeholder}
@@ -87,7 +90,7 @@ total_harga = apel + jeruk + anggur;`}
         </Droppable>
       </DragDropContext>
     </div>
-  );
-};
+  )
+}
 
-export default DraggableAnser;
+export default DraggableAnser

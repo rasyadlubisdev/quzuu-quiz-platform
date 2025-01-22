@@ -1,68 +1,123 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 
-interface Answer {
-    id: string
-    content: string
-    color: string
+interface ClickChipAnswerProps {
+  correctAnswer?: string[]
+  userSelected?: string[]
+  isReviewMode?: boolean
+  onChange?: (newSelected: string[]) => void
 }
 
-const initialAnswers: Answer[] = [
-    { id: "1", content: "int", color: "bg-blue-400" },
-    { id: "2", content: "= 2000;", color: "bg-orange-500" },
-];
+const chipOptions: string[] = ["int", "= 2000;", "+ 1000"]
 
-const ClickChipAnswer: React.FC = () => {
+const ClickChipAnswer: React.FC<ClickChipAnswerProps> = ({
+  correctAnswer = [],
+  userSelected = [],
+  isReviewMode = false,
+  onChange,
+}) => {
+  const [selectedChips, setSelectedChips] = useState<string[]>(userSelected)
 
-    const [answers, setAnswers] = useState<Answer[]>([])
-    const [idClick, setIdClick] = useState<string[]>([])
+  useEffect(() => {
+    setSelectedChips(userSelected)
+  }, [userSelected])
 
-    function getAnswer(id: string) {
-        setIdClick(prev => [...prev, id])
-        const foundAnswer: any = initialAnswers?.find(answer => answer.id === id)
-        const exists = answers.some(answer => answer.id === id)
-        if (!exists) {
-            setAnswers(prev => [...prev, foundAnswer])
-        }
-    }
+  const handleSelectChip = (value: string) => {
+    if (isReviewMode) return
 
-    function resetAnswer() {
-        setAnswers([])
-        setIdClick([])
-    }
+    if (selectedChips.includes(value)) return
 
-    console.log(answers)
-    
-    return (
-        <div className="flex flex-col">
-            <div className="code-display py-8 px-6 bg-slate-950 text-white rounded-md whitespace-pre-wrap">
-                <code><span className="text-blue-400">int</span> apel = <span className="text-orange-500">5000</span>;</code>
-                <br />
-                <code><Input value={answers.length > 0 ? answers[0].content : ""} style={{ width: `${(answers.length > 0 ? answers[0].content : "").length}ch` }}  disabled className={`focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default ${answers.length > 0 ? answers[0].color : "bg-slate-600"} text-slate-950 min-w-9 h-6 inline p-0 leading-3 focus:ring-transparent text-base`} /> jeruk = <span className="text-orange-500">2000</span>;</code>
-                <br />
-                <code><span className="text-blue-400">int</span> anggur <Input value={answers.length > 1 ? answers[1].content : ""} style={{ width: `${(answers.length > 1 ? answers[1].content : "").length}ch` }} disabled className={`focus-visible:ring-offset-0 disabled:opacity-100 disabled:cursor-default ${answers.length > 1 ? answers[1].color : "bg-slate-600"}  text-slate-950 min-w-16 h-6 inline p-0 leading-3 focus:ring-transparent focus:outline-none text-base`} /></code>
-                <br />
-                <code>total_harga = apel + jeruk + anggur;</code>
-            </div>
-            <div className="flex justify-between items-center mt-5">
-                <div className="flex gap-x-2.5">
-                    {initialAnswers.map(({id, content, color}) => (
-                        <div 
-                            className={`${color} ${idClick.some(el => el === id) ? "invisible" : "visible"} text-slate-950 py-1 px-2 rounded-md cursor-pointer`}
-                            key={id}
-                            onClick={() => getAnswer(id)}
-                        >
-                            <code>{content}</code>
-                        </div>
-                    ))}
-                </div>
-                <Button variant="ghost" onClick={() => resetAnswer()}>Reset</Button>
-            </div>
+    const updated = [...selectedChips, value]
+    setSelectedChips(updated)
+    onChange?.(updated)
+  }
+
+  const handleReset = () => {
+    if (isReviewMode) return
+
+    setSelectedChips([])
+    onChange?.([])
+  }
+
+  const inputColor = (index: number) => {
+    if (!isReviewMode) return "bg-slate-600"
+    return selectedChips[index] === correctAnswer[index]
+      ? "bg-green-400"
+      : "bg-red-400"
+  }
+
+  return (
+    <div className="flex flex-col">
+      <div className="code-display py-8 px-6 bg-slate-950 text-white rounded-md whitespace-pre-wrap">
+        <code>
+          <span className="text-blue-400">int</span> apel ={" "}
+          <span className="text-orange-500">5000</span>;
+        </code>
+        <br />
+        <code>
+          <Input
+            disabled
+            value={selectedChips[0] || ""}
+            className={`${inputColor(
+              0
+            )} text-slate-950 w-24 h-6 inline p-0 leading-3 text-base`}
+          />{" "}
+          jeruk = <span className="text-orange-500">2000</span>;
+        </code>
+        <br />
+        <code>
+          <span className="text-blue-400">int</span> anggur{" "}
+          <Input
+            disabled
+            value={selectedChips[1] || ""}
+            className={`${inputColor(
+              1
+            )} text-slate-950 w-24 h-6 inline p-0 leading-3 text-base`}
+          />
+          ;
+        </code>
+        <br />
+        <code>total = apel + jeruk + anggur;</code>
+      </div>
+
+      {!isReviewMode && (
+        <div className="flex justify-between items-center mt-5">
+          <div className="flex gap-x-2.5">
+            {chipOptions.map((chip) => (
+              <div
+                key={chip}
+                className={`${
+                  selectedChips.includes(chip) ? "invisible" : "visible"
+                } bg-blue-400 text-slate-950 py-1 px-2 rounded-md cursor-pointer`}
+                onClick={() => handleSelectChip(chip)}
+              >
+                <code>{chip}</code>
+              </div>
+            ))}
+          </div>
+          <Button variant="ghost" onClick={handleReset}>
+            Reset
+          </Button>
         </div>
-    )
+      )}
+
+      {isReviewMode && (
+        <div className="mt-3 text-sm">
+          {JSON.stringify(selectedChips) === JSON.stringify(correctAnswer) ? (
+            <span className="text-green-600">Semua potongan kode benar!</span>
+          ) : (
+            <span className="text-red-600">
+              Ada potongan kode yang salah. Seharusnya:{" "}
+              {JSON.stringify(correctAnswer)}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default ClickChipAnswer

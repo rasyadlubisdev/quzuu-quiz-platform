@@ -1,10 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "../ui/button"
-import { Input } from "@/components/ui/input"
-import { useRouter } from "next/navigation"
-
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -15,6 +11,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -24,64 +22,57 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-interface DataTableProps<TData, TValue> {
+interface DataTableLeaderboardProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
 }
 
-export function DataTable<TData, TValue>({
+export function DataTableLeaderboard<TData, TValue>({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
+}: DataTableLeaderboardProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       columnFilters,
     },
   })
 
-  const router = useRouter()
-
   return (
-    <div className="col-span-2 text-slate-800">
-      <div className="header-group flex items-center justify-between">
-        <h3 className="text-xl font-semibold basis-1/3">Events</h3>
-        <div className="flex items-center justify-end py-4 basis-2/3">
-          <Input
-            placeholder="Search events..."
-            value={
-              (table.getColumn("eventTitle")?.getFilterValue() as string) ?? ""
-            }
-            onChange={(event) =>
-              table.getColumn("eventTitle")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm ring-primary"
-          />
-        </div>
+    <div className="pb-10">
+      <div className="flex items-center justify-between py-4">
+        <Input
+          placeholder="Search username..."
+          value={
+            (table.getColumn("username")?.getFilterValue() as string) ?? ""
+          }
+          onChange={(event) =>
+            table.getColumn("username")?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm ring-primary"
+        />
       </div>
+
       <div className="rounded-3xl border bg-white shadow">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -91,14 +82,12 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={() => router.push("/event-details/1")}
-                  className="hover:bg-violet-100 cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext(),
+                        cell.getContext()
                       )}
                     </TableCell>
                   ))}
@@ -117,6 +106,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"

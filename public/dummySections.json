@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "title": "Bagian A : Analitika dan Logika",
+    "slug": "analitika",
+    "description": "30 Soal Pilihan Ganda & 2 Isian Singkat | Time Limit : 02 hrs 30 mins",
+    "isCompleted": true,
+    "score": 80,
+    "correctCount": 25,
+    "wrongCount": 5,
+    "emptyCount": 2,
+    "reviewCount": 0,
+    "startTime": "10:00",
+    "endTime": "11:10",
+    "duration": "1 jam 10 menit"
+  },
+  {
+    "id": 2,
+    "title": "Bagian B : Pemrograman",
+    "slug": "pemrograman",
+    "description": "5 Soal Coding | Time Limit : 03 hrs 00 mins",
+    "isCompleted": false,
+    "score": 0,
+    "correctCount": 0,
+    "wrongCount": 0,
+    "emptyCount": 0,
+    "reviewCount": 0,
+    "startTime": null,
+    "endTime": null,
+    "duration": null
+  },
+  {
+    "id": 3,
+    "title": "Bagian C : Data Structures",
+    "slug": "data-structures",
+    "description": "20 Soal Pilihan Ganda | Time Limit : 01 hr 30 mins",
+    "isCompleted": false,
+    "score": 0,
+    "correctCount": 0,
+    "wrongCount": 0,
+    "emptyCount": 0,
+    "reviewCount": 0,
+    "startTime": null,
+    "endTime": null,
+    "duration": null
+  }
+]

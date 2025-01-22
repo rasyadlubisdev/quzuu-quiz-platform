@@ -1,8 +1,7 @@
-import loginStyle from "../login/style.module.css";
-import Link from "next/link";
+import loginStyle from "../login/style.module.css"
+import Link from "next/link"
 
 const register = async () => {
-  
   return (
     <div className="container">
       <div className={`${loginStyle["card-login"]} ${"card-quzuu"}`}>
@@ -102,7 +101,7 @@ const register = async () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default register;
+export default register

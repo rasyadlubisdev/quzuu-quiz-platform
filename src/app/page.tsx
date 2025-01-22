@@ -15,31 +15,31 @@ async function getData(): Promise<Events[]> {
       id: "728ed52f",
       eventTitle: "Try Out OSNK  Informatika 2023",
       dateTime: "Monday, 26 Dec 2023 08.00 - 23.00",
-      participant: 300
+      participant: 300,
     },
     {
       id: "728er32f",
       eventTitle: "Try Out KSM  Informatika 2023",
       dateTime: "26 Dec 2023 08.00 - 23.00 | 2 hrs 30 mins",
-      participant: 30
+      participant: 30,
     },
     {
       id: "728ella2f",
       eventTitle: "Uji Coba CPNS 2023",
       dateTime: "26 Dec 2023 08.00 - 23.00 | 2 hrs 30 mins",
-      participant: 100
+      participant: 100,
     },
     {
       id: "728sfjd52f",
       eventTitle: "Latihan UKBI 2023",
       dateTime: "26 Dec 2023 08.00 - 23.00 | 2 hrs 30 mins",
-      participant: 200
+      participant: 200,
     },
     {
       id: "728ed5pwoe",
       eventTitle: "Quiz rizzz",
       dateTime: "26 Dec 2023 08.00 - 23.00 | 2 hrs 30 mins",
-      participant: 3000
+      participant: 3000,
     },
   ]
 }
@@ -50,7 +50,9 @@ export default async function Home() {
   return (
     <main className="home-page container bg-slate-100 text-slate-950">
       <section className="greetings py-11">
-        <h1 className="text-2xl font-normal">👋 Welcome Back <span className="font-bold">Abdan Hafidz</span></h1>
+        <h1 className="text-2xl font-normal">
+          👋 Welcome Back <span className="font-bold">Abdan Hafidz</span>
+        </h1>
       </section>
       <section className="pb-10 grid grid-cols-1 md:grid-cols-3 gap-y-8 md:gap-x-8">
         <DataTable columns={columns} data={data} />
@@ -60,5 +62,5 @@ export default async function Home() {
         </aside>
       </section>
     </main>
-  );
+  )
 }

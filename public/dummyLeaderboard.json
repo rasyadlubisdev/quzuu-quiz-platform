@@ -1,0 +1,17 @@
+{
+  "quiz1": [
+    { "rank": 1, "username": "alice", "score": 95, "duration": 23.451 },
+    { "rank": 2, "username": "bob", "score": 90, "duration": 27.543 },
+    { "rank": 3, "username": "charlie", "score": 88, "duration": 30.123 },
+    { "rank": 4, "username": "david", "score": 87, "duration": 32.999 }
+  ],
+  "quiz2": [
+    { "rank": 1, "username": "zorro", "score": 99, "duration": 20.567 },
+    { "rank": 2, "username": "hikari", "score": 93, "duration": 24.711 },
+    { "rank": 3, "username": "leon", "score": 90, "duration": 29.345 }
+  ],
+  "quiz3": [
+    { "rank": 1, "username": "someone", "score": 80, "duration": 45.222 },
+    { "rank": 2, "username": "anyone", "score": 78, "duration": 50.0 }
+  ]
+}
