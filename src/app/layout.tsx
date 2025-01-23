@@ -6,23 +6,23 @@ import Navbar from "@/components/Navbar"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Quzuu - Quiz Platform",
-  description: "Empowering champions with Quzuu",
+    title: "Quzuu - Quiz Platform",
+    description: "Empowering champions with Quzuu",
 }
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode
+    children: React.ReactNode
 }>) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div>
-          {<Navbar />}
-          {children}
-        </div>
-      </body>
-    </html>
-  )
+    return (
+        <html lang="en">
+            <body className={inter.className}>
+                <div>
+                    {<Navbar />}
+                    {children}
+                </div>
+            </body>
+        </html>
+    )
 }

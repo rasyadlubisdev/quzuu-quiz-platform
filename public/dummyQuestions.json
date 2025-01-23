@@ -1,66 +1,66 @@
 [
-  {
-    "id": 1,
-    "question": "Berapa hasil dari 2 + 2?",
-    "type": "radio",
-    "options": [
-      { "id": 1, "order": "A", "label": "3" },
-      { "id": 2, "order": "B", "label": "4" },
-      { "id": 3, "order": "C", "label": "5" }
-    ],
-    "correctAnswer": 2
-  },
-  {
-    "id": 2,
-    "question": "Pilih dua hewan berkaki 4:",
-    "type": "checkbox",
-    "options": [
-      { "id": 1, "order": "A", "label": "Kucing" },
-      { "id": 2, "order": "B", "label": "Ayam" },
-      { "id": 3, "order": "C", "label": "Sapi" }
-    ],
-    "correctAnswer": [1, 3]
-  },
-  {
-    "id": 3,
-    "question": "Siapakah penemu lampu pijar?",
-    "type": "short",
-    "correctAnswerText": "Thomas Alva Edison"
-  },
-  {
-    "id": 4,
-    "question": "Lengkapi kode berikut (ClickChipAnswer).",
-    "type": "clickchip",
-    "correctAnswer": ["int", "= 2000;"]
-  },
-  {
-    "id": 5,
-    "question": "Lengkapi kode berikut (CodeShortAnswer).",
-    "type": "codeshort",
-    "correctAnswer": ["int", "= 3000;"]
-  },
-  {
-    "id": 6,
-    "question": "Upload file kodingan c++ yang berisi fungsi main().",
-    "type": "file",
-    "correctFileUrl": "http://example.com/uploads/soal6jawaban.cpp"
-  },
-  {
-    "id": 7,
-    "question": "Tentukan pernyataan benar atau salah.",
-    "type": "truefalse",
-    "statements": [
-      { "id": 1, "statement": "2 + 2 = 4" },
-      { "id": 2, "statement": "Bumi itu datar" }
-    ],
-    "correctAnswer": {
-      "1": true,
-      "2": false
+    {
+        "id": 1,
+        "question": "Berapa hasil dari 2 + 2?",
+        "type": "radio",
+        "options": [
+            { "id": 1, "order": "A", "label": "3" },
+            { "id": 2, "order": "B", "label": "4" },
+            { "id": 3, "order": "C", "label": "5" }
+        ],
+        "correctAnswer": 2
+    },
+    {
+        "id": 2,
+        "question": "Pilih dua hewan berkaki 4:",
+        "type": "checkbox",
+        "options": [
+            { "id": 1, "order": "A", "label": "Kucing" },
+            { "id": 2, "order": "B", "label": "Ayam" },
+            { "id": 3, "order": "C", "label": "Sapi" }
+        ],
+        "correctAnswer": [1, 3]
+    },
+    {
+        "id": 3,
+        "question": "Siapakah penemu lampu pijar?",
+        "type": "short",
+        "correctAnswerText": "Thomas Alva Edison"
+    },
+    {
+        "id": 4,
+        "question": "Lengkapi kode berikut (ClickChipAnswer).",
+        "type": "clickchip",
+        "correctAnswer": ["int", "= 2000"]
+    },
+    {
+        "id": 5,
+        "question": "Lengkapi kode berikut (CodeShortAnswer).",
+        "type": "codeshort",
+        "correctAnswer": ["int", "= 3000"]
+    },
+    {
+        "id": 6,
+        "question": "Upload file kodingan c++ yang berisi fungsi main().",
+        "type": "file",
+        "correctFileUrl": "http://example.com/uploads/soal6jawaban.cpp"
+    },
+    {
+        "id": 7,
+        "question": "Tentukan pernyataan benar atau salah.",
+        "type": "truefalse",
+        "statements": [
+            { "id": 1, "statement": "2 + 2 = 4" },
+            { "id": 2, "statement": "Bumi itu datar" }
+        ],
+        "correctAnswer": {
+            "1": true,
+            "2": false
+        }
+    },
+    {
+        "id": 8,
+        "question": "Buat program mencetak 'Hello World' (CodeEditorAnswer).",
+        "type": "codeeditor"
     }
-  },
-  {
-    "id": 8,
-    "question": "Buat program mencetak 'Hello World' (CodeEditorAnswer).",
-    "type": "codeeditor"
-  }
 ]

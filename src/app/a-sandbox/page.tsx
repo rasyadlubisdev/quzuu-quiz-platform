@@ -3,17 +3,17 @@
 import dynamic from "next/dynamic"
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
-  ssr: false,
+    ssr: false,
 })
 
 const Editor = () => {
-  return (
-    <MonacoEditor
-      height="90vh"
-      defaultLanguage="typescript"
-      defaultValue="// some comment"
-    />
-  )
+    return (
+        <MonacoEditor
+            height="90vh"
+            defaultLanguage="typescript"
+            defaultValue="// some comment"
+        />
+    )
 }
 
 export default Editor
