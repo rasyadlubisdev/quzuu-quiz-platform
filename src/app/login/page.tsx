@@ -1,9 +1,12 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+
+import { useRouter } from "next/navigation"
+import { loginUser } from "@/lib/api"
 
 import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -20,32 +23,57 @@ import Image from "next/image"
 import Link from "next/link"
 
 const FormSchema = z.object({
-    email: z.string(),
-    password: z.string().min(12, {
-        message: "Password must be at least 12 characters.",
+    username: z
+        .string()
+        .min(3, { message: "Username must be at least 3 characters." }),
+    password: z.string().min(7, {
+        message: "Password must be at least 7 characters.",
     }),
 })
 
 const Login = () => {
+    const router = useRouter()
+    const [loading, setLoading] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
+
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            email: "",
+            username: "",
+            password: "",
         },
     })
 
-    function onSubmit(data: z.infer<typeof FormSchema>) {
+    async function onSubmit(data: z.infer<typeof FormSchema>) {
+        setLoading(true)
+        setErrorMessage("")
+
         console.log(data)
-        toast({
-            title: "You submitted the following values:",
-            description: (
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                    <code className="text-white">
-                        {JSON.stringify(data, null, 2)}
-                    </code>
-                </pre>
-            ),
-        })
+
+        try {
+            const token = await loginUser(data.username, data.password)
+
+            // Simpan token ke localStorage atau session
+            localStorage.setItem("authToken", token)
+
+            // Redirect ke dashboard atau halaman utama setelah login berhasil
+            router.push("/")
+        } catch (error: any) {
+            setErrorMessage(error.message)
+        } finally {
+            setLoading(false)
+        }
+
+        // toast({
+        //     title: "You submitted the following values:",
+        //     description: (
+        //         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+        //             <code className="text-white">
+        //                 {JSON.stringify(data, null, 2)}
+        //             </code>
+        //         </pre>
+        //     ),
+        // })
     }
 
     return (
@@ -73,14 +101,13 @@ const Login = () => {
                     >
                         <FormField
                             control={form.control}
-                            name="email"
+                            name="username"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                    <FormLabel>Username</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Email"
-                                            type="email"
+                                            placeholder="username"
                                             {...field}
                                         />
                                     </FormControl>

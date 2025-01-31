@@ -36,10 +36,10 @@ const FormSchema = z
             .min(3, { message: "Username must be at least 3 characters." }),
         password: z
             .string()
-            .min(12, { message: "Password must be at least 12 characters." }),
+            .min(7, { message: "Password must be at least 7 characters." }),
         confirmPassword: z
             .string()
-            .min(12, { message: "Confirm password must match the password." }),
+            .min(7, { message: "Confirm password must match the password." }),
     })
     .refine((data) => data.password === data.confirmPassword, {
         path: ["confirmPassword"],
