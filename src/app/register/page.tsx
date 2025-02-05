@@ -4,7 +4,7 @@ import React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
+import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import Link from "next/link"
+import { registerUser } from "@/lib/api"
 
 const FormSchema = z
     .object({
@@ -46,7 +47,8 @@ const FormSchema = z
         message: "Passwords do not match.",
     })
 
-const Register = () => {
+export default function Register() {
+    const router = useRouter()
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -59,18 +61,26 @@ const Register = () => {
         },
     })
 
-    function onSubmit(data: z.infer<typeof FormSchema>) {
-        console.log(data)
-        toast({
-            title: "You submitted the following values:",
-            description: (
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                    <code className="text-white">
-                        {JSON.stringify(data, null, 2)}
-                    </code>
-                </pre>
-            ),
-        })
+    async function onSubmit(data: z.infer<typeof FormSchema>) {
+        try {
+            await registerUser(
+                data.name,
+                data.username,
+                data.email,
+                data.password,
+                data.phone,
+            )
+            toast({
+                title: "Registration Success",
+                description: "Your account has been created.",
+            })
+            router.push("/login")
+        } catch (error: any) {
+            toast({
+                title: "Registration Error",
+                description: error.message,
+            })
+        }
     }
 
     return (
@@ -112,7 +122,6 @@ const Register = () => {
                                 </FormItem>
                             )}
                         />
-
                         <FormField
                             control={form.control}
                             name="email"
@@ -130,7 +139,6 @@ const Register = () => {
                                 </FormItem>
                             )}
                         />
-
                         <FormField
                             control={form.control}
                             name="phone"
@@ -147,7 +155,6 @@ const Register = () => {
                                 </FormItem>
                             )}
                         />
-
                         <FormField
                             control={form.control}
                             name="username"
@@ -164,7 +171,6 @@ const Register = () => {
                                 </FormItem>
                             )}
                         />
-
                         <FormField
                             control={form.control}
                             name="password"
@@ -182,7 +188,6 @@ const Register = () => {
                                 </FormItem>
                             )}
                         />
-
                         <FormField
                             control={form.control}
                             name="confirmPassword"
@@ -227,5 +232,3 @@ const Register = () => {
         </div>
     )
 }
-
-export default Register
