@@ -57,12 +57,12 @@ export function DataTable<TData, TValue>({
                         placeholder="Search events..."
                         value={
                             (table
-                                .getColumn("eventTitle")
+                                .getColumn("title")
                                 ?.getFilterValue() as string) ?? ""
                         }
                         onChange={(event) =>
                             table
-                                .getColumn("eventTitle")
+                                .getColumn("title")
                                 ?.setFilterValue(event.target.value)
                         }
                         className="max-w-sm ring-primary"

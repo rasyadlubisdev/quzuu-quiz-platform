@@ -54,6 +54,7 @@ export const loginUser = async (username: string, password: string) => {
 
         return data.data.token
     } catch (error: any) {
+        console.log(error)
         throw new Error(error.message || "Something went wrong during login.")
     }
 }
@@ -115,4 +116,16 @@ export const getProblemsetList = async () => {
 
 export const getQuestions = async (problemsetId: string) => {
     return fetchWithAuth(`/questions/${problemsetId}`)
+}
+
+export const registerEvent = async (id_event: number, event_code: string) => {
+    try {
+        const data = await fetchWithAuth("/register-event", "POST", {
+            id_event,
+            event_code,
+        })
+        return data
+    } catch (error: any) {
+        throw new Error(error.message || "Failed to register event.")
+    }
 }

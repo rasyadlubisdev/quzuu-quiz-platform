@@ -3,23 +3,29 @@
 import { ColumnDef } from "@tanstack/react-table"
 
 export type Events = {
-    id: string
-    eventTitle: string
-    dateTime: string
-    participant: number
+    id_event: string
+    title: string
+    // participant: number
+    start_event: string
+    end_event: string
 }
 
 export const columns: ColumnDef<Events>[] = [
     {
-        accessorKey: "eventTitle",
+        accessorKey: "title",
         header: "Event Title",
     },
     {
-        accessorKey: "dateTime",
-        header: "Date Time",
+        accessorKey: "start_event",
+        header: "Start Date",
     },
     {
-        accessorKey: "participant",
-        header: "Joined",
+        accessorKey: "end_event",
+        header: "End Date",
     },
+
+    // {
+    //     accessorKey: "participant",
+    //     header: "Joined",
+    // },
 ]
