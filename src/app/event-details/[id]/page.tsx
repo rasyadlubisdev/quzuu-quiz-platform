@@ -1,6 +1,42 @@
+"use client"
+
+import React, { useState, useEffect } from "react"
 import NavEvent from "@/components/NavEvent"
+import { useParams } from "next/navigation"
+import { getEventDetails } from "@/lib/api"
 
 const EventOverview = () => {
+    const { id } = useParams()
+    const [eventData, setEventData] = useState<any>(null)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (!id) return
+
+        const fetchEventDetails = async () => {
+            setLoading(true)
+            setError(null)
+            try {
+                const response = await getEventDetails(id as string)
+                console.log("Event Details:", response)
+                setEventData(response.data)
+            } catch (err: any) {
+                console.error(err)
+                setError(err.message)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchEventDetails()
+    }, [id])
+
+    if (loading) return <p>Loading event details...</p>
+    if (error) return <p className="text-red-500">Error: {error}</p>
+
+    console.log(eventData)
+
     return (
         <main className="event-overview-page container bg-slate-100 text-slate-950 min-h-screen">
             <section className="head-info py-8">

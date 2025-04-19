@@ -1,4 +1,60 @@
+import axios, { AxiosRequestConfig, AxiosInstance } from "axios"
+
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+const axiosInstance: AxiosInstance = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        "Content-Type": "application/json",
+    },
+})
+
+axiosInstance.interceptors.response.use(
+    (response) => response.data,
+    (error) => {
+        const errorMessage =
+            error.response?.data?.status ||
+            error.response?.data?.message ||
+            "Something went wrong"
+        return Promise.reject(new Error(errorMessage))
+    },
+)
+
+const authRequest = async (
+    endpoint: string,
+    method: string = "GET",
+    data: any = null,
+    additionalConfig: AxiosRequestConfig = {},
+) => {
+    const token = getAuthToken()
+
+    if (!token) {
+        throw new Error("Unauthorized: No token found")
+    }
+
+    const config: AxiosRequestConfig = {
+        method,
+        url: endpoint,
+        headers: {
+            "Auth-Bearer-Token": token,
+        },
+        ...additionalConfig,
+    }
+
+    if (data) {
+        if (method.toUpperCase() === "GET") {
+            config.params = data
+        } else {
+            config.data = data
+        }
+    }
+
+    try {
+        return await axiosInstance(config)
+    } catch (error: any) {
+        throw new Error(error.message || "Failed to fetch data")
+    }
+}
 
 export const registerUser = async (
     name: string,
@@ -8,27 +64,13 @@ export const registerUser = async (
     phone_number: string,
 ) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/register`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                name,
-                username,
-                email,
-                password,
-                phone_number,
-            }),
+        return await axiosInstance.post("/register", {
+            name,
+            username,
+            email,
+            password,
+            phone_number,
         })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-            throw new Error(data.status || "Registration failed")
-        }
-
-        return data
     } catch (error: any) {
         throw new Error(
             error.message || "Something went wrong during registration.",
@@ -38,21 +80,11 @@ export const registerUser = async (
 
 export const loginUser = async (username: string, password: string) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ username, password }),
+        const response = await axiosInstance.post("/login", {
+            username,
+            password,
         })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-            throw new Error(data.status || "Invalid credentials")
-        }
-
-        return data.data.token
+        return response.data.token
     } catch (error: any) {
         console.log(error)
         throw new Error(error.message || "Something went wrong during login.")
@@ -69,62 +101,32 @@ export const getAuthToken = (): string | null => {
         : null
 }
 
-export const fetchWithAuth = async (
-    endpoint: string,
-    method: string = "GET",
-    body: any = null,
-) => {
-    const token = getAuthToken()
-
-    if (!token) {
-        throw new Error("Unauthorized: No token found")
-    }
-
-    const options: RequestInit = {
-        method,
-        headers: {
-            "Content-Type": "application/json",
-            "Auth-Bearer-Token": token,
-        },
-    }
-
-    if (body) {
-        options.body = JSON.stringify(body)
-    }
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
-    const data = await response.json()
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch data")
-    }
-
-    return data
-}
-
 export const getEventList = async () => {
-    return fetchWithAuth("/event-list")
+    return authRequest("/event-list")
 }
 
-export const getEventDetails = async (eventId: string) => {
-    return fetchWithAuth(`/event-details/${eventId}`)
+export const getEventDetails = async (id_event: string) => {
+    try {
+        return await authRequest("/event-details", "GET", { id_event })
+    } catch (error: any) {
+        throw new Error(error.message || "Failed to get event details.")
+    }
 }
 
 export const getProblemsetList = async () => {
-    return fetchWithAuth("/problemset-list")
+    return authRequest("/problemset-list")
 }
 
 export const getQuestions = async (problemsetId: string) => {
-    return fetchWithAuth(`/questions/${problemsetId}`)
+    return authRequest(`/questions/${problemsetId}`)
 }
 
 export const registerEvent = async (id_event: number, event_code: string) => {
     try {
-        const data = await fetchWithAuth("/register-event", "POST", {
+        return await authRequest("/register-event", "POST", {
             id_event,
             event_code,
         })
-        return data
     } catch (error: any) {
         throw new Error(error.message || "Failed to register event.")
     }
