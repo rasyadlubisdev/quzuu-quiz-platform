@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
+import { getQuestions, submitExamAnswers } from "@/lib/api" // Updated import
 
 import RadioAnswer from "@/components/RadioAnswer"
 import CheckboxAnswer from "@/components/CheckboxAnswer"
@@ -40,10 +42,14 @@ interface Question {
 
 type UserAnswers = Record<number, any>
 
-const QuizContainer: React.FC = () => {
+const QuizContainer: React.FC<{ examId?: string; problemsetId?: string }> = ({
+    examId = "",
+    problemsetId = "",
+}) => {
     const [questions, setQuestions] = useState<Question[]>([])
     const [userAnswers, setUserAnswers] = useState<UserAnswers>({})
     const [isLoading, setIsLoading] = useState(true)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const [isReviewMode, setIsReviewMode] = useState(false)
 
     const searchParams = useSearchParams()
@@ -53,18 +59,46 @@ const QuizContainer: React.FC = () => {
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
-                const res = await fetch("/dummyQuestions.json")
-                const data: Question[] = await res.json()
-                setQuestions(data)
-            } catch (error) {
+                // For development purposes, we'll still use the dummy data
+                // In production, this would be replaced with the API call
+                if (process.env.NODE_ENV === "development") {
+                    const res = await fetch("/dummyQuestions.json")
+                    const data: Question[] = await res.json()
+                    setQuestions(data)
+                } else {
+                    // Use the API function in production
+                    // Use problemsetId parameter for fetching questions
+                    if (!problemsetId) {
+                        throw new Error(
+                            "Problem set ID is required to fetch questions",
+                        )
+                    }
+
+                    // Define an interface for the questions response
+                    interface QuestionsResponse {
+                        questions?: any[] // Ideally define a more specific Question interface
+                        // Add other properties you expect in the response
+                    }
+
+                    const data = (await getQuestions(
+                        problemsetId,
+                    )) as QuestionsResponse
+                    setQuestions(data.questions || [])
+                }
+            } catch (error: any) {
                 console.error("Error fetching questions:", error)
+                toast({
+                    variant: "destructive",
+                    title: "Error fetching questions",
+                    description: error.message || "Failed to load questions",
+                })
             } finally {
                 setIsLoading(false)
             }
         }
 
         fetchQuestions()
-    }, [])
+    }, [problemsetId])
 
     const handleUpdateAnswer = (questionId: number, answerValue: any) => {
         setUserAnswers((prev) => ({
@@ -74,13 +108,60 @@ const QuizContainer: React.FC = () => {
     }
 
     const handleSubmitAnswers = async () => {
-        const payload = {
-            answers: userAnswers,
-        }
-        console.log("MENGIRIM KE SERVER:", payload)
+        setIsSubmitting(true)
 
-        await new Promise((r) => setTimeout(r, 1000))
-        setIsReviewMode(true)
+        try {
+            // In development mode, just simulate an API call
+            if (process.env.NODE_ENV === "development") {
+                await new Promise((r) => setTimeout(r, 1000))
+                setIsReviewMode(true)
+
+                toast({
+                    title: "Answers submitted",
+                    description:
+                        "Your answers have been submitted successfully",
+                })
+            } else {
+                // In production mode, use the actual API
+                // Use examId for submitting answers
+                if (!examId) {
+                    throw new Error("Exam ID is required to submit answers")
+                }
+
+                // Define an interface for the exam submission response
+                interface ExamSubmissionResponse {
+                    message?: string
+                    success?: boolean
+                    score?: number
+                    // Add other properties you expect in the response
+                }
+
+                // Using submitExamAnswers instead of submitQuizAnswers
+                const result = (await submitExamAnswers(
+                    examId,
+                    userAnswers,
+                )) as ExamSubmissionResponse
+
+                setIsReviewMode(true)
+
+                toast({
+                    title: "Answers submitted",
+                    description:
+                        result.message ||
+                        "Your answers have been submitted successfully",
+                })
+            }
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: "Submission failed",
+                description:
+                    error.message ||
+                    "Failed to submit answers. Please try again.",
+            })
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     const renderQuestionByType = (question: Question) => {
@@ -227,9 +308,9 @@ const QuizContainer: React.FC = () => {
                 <div className="mt-8 flex justify-between">
                     <button
                         onClick={() => handleNavigate("prev")}
-                        disabled={currentNumber === 1}
+                        disabled={currentNumber === 1 || isSubmitting}
                         className={`flex items-center justify-center gap-2 py-2 px-4 rounded ${
-                            currentNumber === 1
+                            currentNumber === 1 || isSubmitting
                                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                                 : "bg-violet-500 text-white hover:bg-violet-800"
                         }`}
@@ -239,9 +320,11 @@ const QuizContainer: React.FC = () => {
                     </button>
                     <button
                         onClick={() => handleNavigate("next")}
-                        disabled={currentNumber === questions.length}
+                        disabled={
+                            currentNumber === questions.length || isSubmitting
+                        }
                         className={`flex items-center justify-center gap-2 py-2 px-4 rounded ${
-                            currentNumber === questions.length
+                            currentNumber === questions.length || isSubmitting
                                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                                 : "bg-violet-500 text-white hover:bg-violet-800"
                         }`}

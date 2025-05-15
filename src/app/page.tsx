@@ -6,24 +6,59 @@ import { Events, columns } from "@/components/table-events/columns"
 import { DataTable } from "@/components/table-events/DataTable"
 import CardPrivateEvent from "@/components/CardPrivateEvent"
 import CardInformation from "@/components/CardInformation"
+import { toast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function Home() {
     const [data, setData] = useState<Events[]>([])
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState<boolean>(true)
+    const { user } = useAuth()
 
     useEffect(() => {
-        getEventList()
-            .then((res) => {
-                setData(res)
-            })
-            .catch((err) => {
-                console.error(err)
+        const fetchEvents = async () => {
+            try {
+                // Define an interface for your event data structure
+                interface EventDataResponse {
+                    events?: any[]
+                    data?: any[]
+                }
+
+                // Updated to work with the new API implementation
+                // The API now uses GET with data payload
+                const eventData = (await getEventList()) as
+                    | EventDataResponse
+                    | any[]
+
+                // Now TypeScript knows these properties exist
+                if (Array.isArray(eventData)) {
+                    // If API returns array directly
+                    setData(eventData)
+                } else if (eventData.events) {
+                    // If API returns object with events property
+                    setData(eventData.events)
+                } else {
+                    // If it's some other structure, try to adapt
+                    console.warn("Unexpected event data structure:", eventData)
+                    setData(Array.isArray(eventData.data) ? eventData.data : [])
+                }
+            } catch (err: any) {
+                console.error("Error fetching events:", err)
                 setError(err.message || "Failed to fetch events.")
-            })
-            .finally(() => {
+
+                toast({
+                    variant: "destructive",
+                    title: "Error fetching events",
+                    description:
+                        err.message ||
+                        "Failed to fetch events. Please try again later.",
+                })
+            } finally {
                 setLoading(false)
-            })
+            }
+        }
+
+        fetchEvents()
     }, [])
 
     if (loading) {
@@ -48,19 +83,17 @@ export default function Home() {
         )
     }
 
-    // console.log(data.data[0])
-
     return (
         <main className="home-page container bg-slate-100 text-slate-950">
             <section className="greetings py-11">
                 <h1 className="text-2xl font-normal">
                     👋 Welcome Back{" "}
-                    <span className="font-bold">Abdan Hafidz</span>
+                    <span className="font-bold">{user?.name || "Guest"}</span>
                 </h1>
             </section>
 
             <section className="pb-10 grid grid-cols-1 md:grid-cols-3 gap-y-8 md:gap-x-8">
-                <DataTable columns={columns} data={data?.data} />
+                <DataTable columns={columns} data={data} />
 
                 <aside>
                     <CardPrivateEvent />

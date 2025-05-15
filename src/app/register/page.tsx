@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -20,18 +20,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { registerUser } from "@/lib/api"
 
+// Updated schema to match API requirements
 const FormSchema = z
     .object({
-        name: z
+        email: z
             .string()
-            .min(2, { message: "Name must be at least 2 characters." }),
-        email: z.string().email({ message: "Invalid email address." }),
-        phone: z
-            .string()
-            .regex(/^\d+$/, {
-                message: "Phone number must contain only digits.",
-            })
-            .min(10, { message: "Phone number must be at least 10 digits." }),
+            .email({ message: "Please enter a valid email address." }),
         username: z
             .string()
             .min(3, { message: "Username must be at least 3 characters." }),
@@ -49,12 +43,12 @@ const FormSchema = z
 
 export default function Register() {
     const router = useRouter()
+    const [loading, setLoading] = useState(false)
+
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            name: "",
             email: "",
-            phone: "",
             username: "",
             password: "",
             confirmPassword: "",
@@ -62,24 +56,28 @@ export default function Register() {
     })
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
+        setLoading(true)
+
         try {
-            await registerUser(
-                data.name,
-                data.username,
-                data.email,
-                data.password,
-                data.phone,
-            )
+            // Call registerUser with email, username, and password
+            await registerUser(data.email, data.username, data.password)
+
             toast({
-                title: "Registration Success",
-                description: "Your account has been created.",
+                title: "Registration Successful",
+                description: "Please check your email to verify your account.",
             })
-            router.push("/login")
+
+            // Redirect to verification pending page
+            router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
         } catch (error: any) {
             toast({
+                variant: "destructive",
                 title: "Registration Error",
-                description: error.message,
+                description:
+                    error.message || "An error occurred during registration",
             })
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -99,29 +97,13 @@ export default function Register() {
                     Create an Account
                 </h1>
                 <p className="text-slate-500 mb-8">
-                    Fill in the details to register.
+                    Fill in your account details to register.
                 </p>
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="w-2/3 space-y-6"
                     >
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Name</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Full Name"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                         <FormField
                             control={form.control}
                             name="email"
@@ -132,22 +114,6 @@ export default function Register() {
                                         <Input
                                             placeholder="Email"
                                             type="email"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="phone"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Phone Number</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Phone Number"
                                             {...field}
                                         />
                                     </FormControl>
@@ -205,8 +171,12 @@ export default function Register() {
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full mt-14">
-                            Register
+                        <Button
+                            type="submit"
+                            className="w-full mt-14"
+                            disabled={loading}
+                        >
+                            {loading ? "Creating Account..." : "Register"}
                         </Button>
                     </form>
                 </Form>

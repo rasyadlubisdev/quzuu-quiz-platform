@@ -7,6 +7,7 @@ import { z } from "zod"
 
 import { useRouter } from "next/navigation"
 import { loginUser } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext" // Import useAuth hook
 
 import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -22,10 +23,9 @@ import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import Link from "next/link"
 
+// Update form schema to use email instead of username
 const FormSchema = z.object({
-    username: z
-        .string()
-        .min(3, { message: "Username must be at least 3 characters." }),
+    email: z.string().email({ message: "Please enter a valid email address." }),
     password: z.string().min(7, {
         message: "Password must be at least 7 characters.",
     }),
@@ -35,11 +35,12 @@ const Login = () => {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState("")
+    const { refreshUserData } = useAuth() // Get refreshUserData from context
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            username: "",
+            email: "",
             password: "",
         },
     })
@@ -48,32 +49,62 @@ const Login = () => {
         setLoading(true)
         setErrorMessage("")
 
-        console.log(data)
-
         try {
-            const token = await loginUser(data.username, data.password)
+            console.log("Attempting login with:", { email: data.email })
 
-            // Simpan token ke localStorage atau session
-            localStorage.setItem("authToken", token)
+            // Call loginUser with email and password
+            const response = await loginUser(data.email, data.password)
+            console.log("Login response:", response)
 
-            // Redirect ke dashboard atau halaman utama setelah login berhasil
+            // loginUser will automatically store the token in cookies
+
+            // After successful login, refresh user data in context
+            await refreshUserData()
+
+            toast({
+                title: "Login successful",
+                description: "Welcome back to Quzuu!",
+            })
+
+            // If the account is not verified, redirect to email verification
+            if (
+                response.account &&
+                response.account.is_email_verified === false
+            ) {
+                router.push(
+                    `/verify-email?email=${encodeURIComponent(data.email)}`,
+                )
+                return
+            }
+
+            // If profile is not complete, redirect to complete profile
+            if (
+                response.account &&
+                response.account.is_detail_completed === false
+            ) {
+                router.push("/complete-profile")
+                return
+            }
+
+            // Otherwise redirect to home
             router.push("/")
         } catch (error: any) {
-            setErrorMessage(error.message)
+            console.error("Login error:", error)
+
+            setErrorMessage(
+                error.message || "Failed to login. Please try again.",
+            )
+
+            toast({
+                variant: "destructive",
+                title: "Login failed",
+                description:
+                    error.message ||
+                    "Failed to login. Please check your credentials.",
+            })
         } finally {
             setLoading(false)
         }
-
-        // toast({
-        //     title: "You submitted the following values:",
-        //     description: (
-        //         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-        //             <code className="text-white">
-        //                 {JSON.stringify(data, null, 2)}
-        //             </code>
-        //         </pre>
-        //     ),
-        // })
     }
 
     return (
@@ -101,13 +132,14 @@ const Login = () => {
                     >
                         <FormField
                             control={form.control}
-                            name="username"
+                            name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Username</FormLabel>
+                                    <FormLabel>Email</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="username"
+                                            placeholder="your-email@example.com"
+                                            type="email"
                                             {...field}
                                         />
                                     </FormControl>
@@ -131,14 +163,25 @@ const Login = () => {
                                     <FormMessage />
                                     <div className="lupa-password flex justify-end">
                                         <Button variant="link">
-                                            <Link href="/">Lupa Password</Link>
+                                            <Link href="/forgot-password">
+                                                Forgot Password
+                                            </Link>
                                         </Button>
                                     </div>
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full mt-14">
-                            Login
+                        {errorMessage && (
+                            <div className="text-red-500 text-sm">
+                                {errorMessage}
+                            </div>
+                        )}
+                        <Button
+                            type="submit"
+                            className="w-full mt-14"
+                            disabled={loading}
+                        >
+                            {loading ? "Logging in..." : "Login"}
                         </Button>
                     </form>
                 </Form>
