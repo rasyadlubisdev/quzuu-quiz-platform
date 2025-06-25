@@ -76,13 +76,13 @@ const CardPrivateEvent = () => {
                 Enter the Event Details
             </div>
             <div className="flex flex-col gap-4">
-                <Input
+                {/* <Input
                     placeholder="Enter Event ID..."
                     className="ring-primary"
                     value={eventId}
                     onChange={(e) => setEventId(e.target.value)}
                     disabled={loading}
-                />
+                /> */}
                 <Input
                     placeholder="Enter Event Code..."
                     className="ring-primary"
@@ -91,7 +91,8 @@ const CardPrivateEvent = () => {
                     disabled={loading}
                 />
                 <Button
-                    className="w-full"
+                    className="w-full text-white"
+                    variant={"secondary"}
                     onClick={handleEnroll}
                     disabled={loading}
                 >

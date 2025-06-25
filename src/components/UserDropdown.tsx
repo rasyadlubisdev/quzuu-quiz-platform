@@ -76,13 +76,13 @@ const UserDropdown: React.FC = () => {
             <div className="flex space-x-2">
                 <Link
                     href="/login"
-                    className="text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-md transition-colors"
+                    className="text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-md transition-colors font-medium"
                 >
                     Login
                 </Link>
                 <Link
                     href="/register"
-                    className="text-violet-600 bg-white hover:bg-gray-100 px-4 py-2 rounded-md transition-colors"
+                    className="text-violet-600 bg-white hover:bg-gray-100 px-4 py-2 rounded-md transition-colors font-medium"
                 >
                     Register
                 </Link>
@@ -95,10 +95,10 @@ const UserDropdown: React.FC = () => {
         const [imageError, setImageError] = useState(false)
         
         if (imageError || !src) {
-            return <UserCircle className={`h-8 w-8 text-white`} />
+            return <UserCircle className="h-8 w-8 text-white" />
         }
 
-        if (src.includes('googleusercontent.com')) {
+        if (src && src.includes('googleusercontent.com')) {
             // Use regular img tag for Google avatars to avoid Next.js config issues
             return (
                 <img
@@ -110,7 +110,7 @@ const UserDropdown: React.FC = () => {
                     onError={() => setImageError(true)}
                 />
             )
-        } else {
+        } else if (src) {
             // Use Next.js Image for other sources
             return (
                 <Image
@@ -122,6 +122,8 @@ const UserDropdown: React.FC = () => {
                     onError={() => setImageError(true)}
                 />
             )
+        } else {
+            return <UserCircle className="h-8 w-8 text-white" />
         }
     }
 
@@ -132,24 +134,24 @@ const UserDropdown: React.FC = () => {
                 className="flex items-center space-x-2 p-2 rounded-lg hover:bg-violet-600 transition-colors"
                 disabled={isLoading}
             >
-                <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center">
+                <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
                     <UserAvatar 
                         src={user.avatar} 
                         alt={user.fullName || user.username || "User"} 
                         size={32} 
                     />
                 </div>
-                <span className="text-white hidden sm:block max-w-[100px] truncate">
+                <span className="text-white hidden sm:block max-w-[100px] truncate font-medium">
                     {user.fullName || user.username}
                 </span>
                 <ChevronDown className={`h-4 w-4 text-white transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg overflow-hidden z-50 border">
-                    <div className="p-4 border-b">
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg overflow-hidden z-50 border border-gray-200">
+                    <div className="p-4 border-b border-gray-200 bg-white">
                         <div className="flex items-center space-x-3">
-                            <div className="h-12 w-12 rounded-full overflow-hidden flex items-center justify-center">
+                            <div className="h-12 w-12 rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
                                 <UserAvatar 
                                     src={user.avatar} 
                                     alt={user.fullName || user.username || "User"} 
@@ -157,10 +159,10 @@ const UserDropdown: React.FC = () => {
                                 />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-800 truncate">
+                                <p className="font-medium text-gray-900 truncate">
                                     {user.fullName || user.username}
                                 </p>
-                                <p className="text-sm text-gray-500 truncate">
+                                <p className="text-sm text-gray-600 truncate">
                                     {user.email}
                                 </p>
                             </div>
@@ -170,79 +172,79 @@ const UserDropdown: React.FC = () => {
                     {!user.isEmailVerified && (
                         <Link
                             href="/verify-email"
-                            className="block p-3 text-sm font-medium text-red-700 bg-red-50 border-b flex items-center hover:bg-red-100 transition-colors"
+                            className="block p-3 text-sm font-medium text-red-700 bg-red-50 border-b border-red-100 flex items-center hover:bg-red-100 transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
-                            <AlertCircle className="mr-2 h-4 w-4 flex-shrink-0" />
-                            <span>Verify your email address</span>
+                            <AlertCircle className="mr-2 h-4 w-4 flex-shrink-0 text-red-600" />
+                            <span className="text-red-700">Verify your email address</span>
                         </Link>
                     )}
 
                     {user.isEmailVerified && !user.isProfileComplete && (
                         <Link
                             href="/complete-profile"
-                            className="block p-3 text-sm font-medium text-yellow-700 bg-yellow-50 border-b flex items-center hover:bg-yellow-100 transition-colors"
+                            className="block p-3 text-sm font-medium text-yellow-700 bg-yellow-50 border-b border-yellow-100 flex items-center hover:bg-yellow-100 transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
-                            <AlertCircle className="mr-2 h-4 w-4 flex-shrink-0" />
-                            <span>Complete your profile</span>
+                            <AlertCircle className="mr-2 h-4 w-4 flex-shrink-0 text-yellow-600" />
+                            <span className="text-yellow-700">Complete your profile</span>
                         </Link>
                     )}
 
-                    <div className="p-2">
+                    <div className="p-2 bg-white">
                         <Link
                             href="/profile"
-                            className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors"
+                            className="flex items-center px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
-                            <UserCircle className="mr-2 h-4 w-4 flex-shrink-0" />
-                            My Profile
+                            <UserCircle className="mr-2 h-4 w-4 flex-shrink-0 text-gray-500" />
+                            <span className="text-gray-700 font-medium">My Profile</span>
                         </Link>
 
                         <Link
                             href="/settings"
-                            className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors"
+                            className="flex items-center px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
-                            <Settings className="mr-2 h-4 w-4 flex-shrink-0" />
-                            Settings
+                            <Settings className="mr-2 h-4 w-4 flex-shrink-0 text-gray-500" />
+                            <span className="text-gray-700 font-medium">Settings</span>
                         </Link>
 
                         <Link
                             href="/my-events"
-                            className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors"
+                            className="flex items-center px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
-                            <FileClock className="mr-2 h-4 w-4 flex-shrink-0" />
-                            My Events
+                            <FileClock className="mr-2 h-4 w-4 flex-shrink-0 text-gray-500" />
+                            <span className="text-gray-700 font-medium">My Events</span>
                         </Link>
 
                         <Link
                             href="/my-learning"
-                            className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors"
+                            className="flex items-center px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
-                            <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
-                            My Learning
+                            <BookOpen className="mr-2 h-4 w-4 flex-shrink-0 text-gray-500" />
+                            <span className="text-gray-700 font-medium">My Learning</span>
                         </Link>
 
                         <Link
                             href="/achievements"
-                            className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition-colors"
+                            className="flex items-center px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
-                            <Medal className="mr-2 h-4 w-4 flex-shrink-0" />
-                            Achievements
+                            <Medal className="mr-2 h-4 w-4 flex-shrink-0 text-gray-500" />
+                            <span className="text-gray-700 font-medium">Achievements</span>
                         </Link>
                     </div>
 
-                    <div className="p-2 border-t">
+                    <div className="p-2 border-t border-gray-200 bg-white">
                         <button
                             onClick={handleLogout}
                             className="flex w-full items-center px-3 py-2 text-sm text-red-600 rounded-md hover:bg-red-50 transition-colors"
                         >
-                            <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
-                            Logout
+                            <LogOut className="mr-2 h-4 w-4 flex-shrink-0 text-red-500" />
+                            <span className="text-red-600 font-medium">Logout</span>
                         </button>
                     </div>
                 </div>

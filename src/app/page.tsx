@@ -97,7 +97,7 @@ export default function Home() {
 
                 <aside>
                     <CardPrivateEvent />
-                    <CardInformation />
+                    {/* <CardInformation /> */}
                 </aside>
             </section>
         </main>

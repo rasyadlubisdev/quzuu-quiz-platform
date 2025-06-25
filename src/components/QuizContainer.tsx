@@ -289,9 +289,13 @@ const QuizContainer: React.FC<{ examId?: string; problemsetId?: string }> = ({
             />
 
             <div className="display-quiz col-span-2 bg-white p-9 rounded-3xl text-slate-800 shadow">
-                <h1 className="text-2xl underline mb-8">
+                {/* <h1 className="text-2xl underline mb-8">
                     # Question {currentQuestion.id}
-                </h1>
+                </h1> */}
+                <div className="mb-4">
+                    <span className="width-fit rounded-full font-bold bg-secondary text-white p-2.5">Question {currentQuestion.id}</span>
+                </div>
+
                 <p className="text-base mb-4">{currentQuestion.question}</p>
 
                 {renderQuestionByType(currentQuestion)}

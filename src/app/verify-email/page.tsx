@@ -220,7 +220,7 @@ function VerifyEmailContent() {
                 </div>
 
                 {/* Debug section - only in development */}
-                {process.env.NODE_ENV === "development" && (
+                {/* {process.env.NODE_ENV === "development" && (
                     <div className="mt-8 pt-4 border-t border-gray-200">
                         <p className="text-xs text-gray-500 mb-2">
                             Development Debug:
@@ -234,7 +234,7 @@ function VerifyEmailContent() {
                             Skip Verification (Debug)
                         </Button>
                     </div>
-                )}
+                )} */}
             </div>
         </div>
     )

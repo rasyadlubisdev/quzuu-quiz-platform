@@ -327,7 +327,7 @@ export default function CompleteProfile() {
                         </div>
 
                         <div className="flex justify-between pt-4">
-                            <div className="flex gap-2">
+                            {/* <div className="flex gap-2">
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -336,7 +336,6 @@ export default function CompleteProfile() {
                                     Skip for Now
                                 </Button>
                                 
-                                {/* Debug buttons - remove in production */}
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -354,7 +353,7 @@ export default function CompleteProfile() {
                                 >
                                     Force Complete
                                 </Button>
-                            </div>
+                            </div> */}
                             
                             <Button type="submit" disabled={loading}>
                                 {loading ? "Saving..." : "Save Profile"}
