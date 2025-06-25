@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import Link from "next/link"
 import { registerUser } from "@/lib/api"
+import GoogleSignInButton from "@/components/GoogleSignInButton"
 
 // Updated schema to match API requirements
 const FormSchema = z
@@ -28,10 +29,17 @@ const FormSchema = z
             .email({ message: "Please enter a valid email address." }),
         username: z
             .string()
-            .min(3, { message: "Username must be at least 3 characters." }),
+            .min(3, { message: "Username must be at least 3 characters." })
+            .max(20, { message: "Username must be less than 20 characters." })
+            .regex(/^[a-zA-Z0-9_]+$/, { 
+                message: "Username can only contain letters, numbers, and underscores." 
+            }),
         password: z
             .string()
-            .min(7, { message: "Password must be at least 7 characters." }),
+            .min(7, { message: "Password must be at least 7 characters." })
+            .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+                message: "Password must contain at least one uppercase letter, one lowercase letter, and one number."
+            }),
         confirmPassword: z
             .string()
             .min(7, { message: "Confirm password must match the password." }),
@@ -44,6 +52,7 @@ const FormSchema = z
 export default function Register() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -57,8 +66,14 @@ export default function Register() {
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
         setLoading(true)
+        setErrorMessage("")
 
         try {
+            console.log("Attempting registration with:", { 
+                email: data.email, 
+                username: data.username 
+            })
+
             // Call registerUser with email, username, and password
             await registerUser(data.email, data.username, data.password)
 
@@ -70,6 +85,12 @@ export default function Register() {
             // Redirect to verification pending page
             router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
         } catch (error: any) {
+            console.error("Registration error:", error)
+            
+            setErrorMessage(
+                error.message || "An error occurred during registration"
+            )
+
             toast({
                 variant: "destructive",
                 title: "Registration Error",
@@ -84,21 +105,40 @@ export default function Register() {
     return (
         <div className="register-page w-screen min-h-screen bg-white grid grid-cols-1 md:grid-cols-2 gap-x-6">
             <section className="input-register p-4 flex flex-col items-center justify-center">
-                <div className="logo-wrapper w-36">
+                <div className="logo-wrapper w-36 mb-6">
                     <Image
                         src="/assets/img/quzzulogo.png"
                         alt="Logo Quzzu"
                         layout="responsive"
                         width={100}
                         height={94}
+                        priority
                     />
                 </div>
-                <h1 className="text-2xl font-semibold mb-2">
+                
+                <h1 className="text-2xl font-semibold mb-2 text-center">
                     Create an Account
                 </h1>
-                <p className="text-slate-500 mb-8">
+                <p className="text-slate-500 mb-8 text-center">
                     Fill in your account details to register.
                 </p>
+
+                {/* Google Sign-In Button */}
+                <div className="w-2/3 mb-6">
+                    <GoogleSignInButton 
+                        text="Sign up with Google" 
+                        disabled={loading} 
+                    />
+                </div>
+
+                {/* Divider */}
+                <div className="w-2/3 flex items-center mb-6">
+                    <div className="flex-1 border-t border-gray-300"></div>
+                    <span className="px-4 text-gray-500 text-sm">or</span>
+                    <div className="flex-1 border-t border-gray-300"></div>
+                </div>
+
+                {/* Registration Form */}
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
@@ -109,11 +149,13 @@ export default function Register() {
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                    <FormLabel>Email Address</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Email"
+                                            placeholder="your-email@example.com"
                                             type="email"
+                                            autoComplete="email"
+                                            disabled={loading}
                                             {...field}
                                         />
                                     </FormControl>
@@ -121,6 +163,7 @@ export default function Register() {
                                 </FormItem>
                             )}
                         />
+                        
                         <FormField
                             control={form.control}
                             name="username"
@@ -129,7 +172,9 @@ export default function Register() {
                                     <FormLabel>Username</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Username"
+                                            placeholder="Choose a username"
+                                            autoComplete="username"
+                                            disabled={loading}
                                             {...field}
                                         />
                                     </FormControl>
@@ -137,6 +182,7 @@ export default function Register() {
                                 </FormItem>
                             )}
                         />
+                        
                         <FormField
                             control={form.control}
                             name="password"
@@ -145,8 +191,10 @@ export default function Register() {
                                     <FormLabel>Password</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Password"
+                                            placeholder="Create a strong password"
                                             type="password"
+                                            autoComplete="new-password"
+                                            disabled={loading}
                                             {...field}
                                         />
                                     </FormControl>
@@ -154,6 +202,7 @@ export default function Register() {
                                 </FormItem>
                             )}
                         />
+                        
                         <FormField
                             control={form.control}
                             name="confirmPassword"
@@ -162,8 +211,10 @@ export default function Register() {
                                     <FormLabel>Confirm Password</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Confirm Password"
+                                            placeholder="Confirm your password"
                                             type="password"
+                                            autoComplete="new-password"
+                                            disabled={loading}
                                             {...field}
                                         />
                                     </FormControl>
@@ -171,33 +222,69 @@ export default function Register() {
                                 </FormItem>
                             )}
                         />
+
+                        {/* Error Message Display */}
+                        {errorMessage && (
+                            <div className="text-red-500 text-sm text-center p-3 bg-red-50 rounded-md border border-red-200">
+                                {errorMessage}
+                            </div>
+                        )}
+
+                        {/* Terms and Conditions */}
+                        <div className="text-xs text-gray-500 text-center">
+                            By creating an account, you agree to our{" "}
+                            <Link href="/terms" className="text-primary hover:underline">
+                                Terms of Service
+                            </Link>{" "}
+                            and{" "}
+                            <Link href="/privacy" className="text-primary hover:underline">
+                                Privacy Policy
+                            </Link>
+                        </div>
+
                         <Button
                             type="submit"
-                            className="w-full mt-14"
+                            className="w-full mt-6"
                             disabled={loading}
+                            size="lg"
                         >
-                            {loading ? "Creating Account..." : "Register"}
+                            {loading ? (
+                                <div className="flex items-center">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Creating Account...
+                                </div>
+                            ) : (
+                                "Create Account"
+                            )}
                         </Button>
                     </form>
                 </Form>
-                <p className="mt-8">
-                    Already have an account?{" "}
-                    <Button variant="link">
-                        <Link href="/login" className="text-base">
-                            Log in here
-                        </Link>
-                    </Button>
-                </p>
+
+                {/* Login Link */}
+                <div className="mt-8 text-center">
+                    <p className="text-gray-600">
+                        Already have an account?{" "}
+                        <Button variant="link" className="p-0 h-auto font-normal">
+                            <Link href="/login" className="text-primary hover:underline">
+                                Sign in here
+                            </Link>
+                        </Button>
+                    </p>
+                </div>
             </section>
+
+            {/* Right Side - Image */}
             <section className="image-register p-4 hidden md:flex">
-                <Image
-                    src="/assets/img/background-auth.jpg"
-                    alt="Image Register"
-                    layout="responsive"
-                    width={100}
-                    height={94}
-                    className="object-cover rounded-xl"
-                />
+                <div className="w-full h-full relative">
+                    <Image
+                        src="/assets/img/background-auth.jpg"
+                        alt="Registration Background"
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-xl"
+                        priority
+                    />
+                </div>
             </section>
         </div>
     )

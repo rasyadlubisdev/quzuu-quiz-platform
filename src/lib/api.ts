@@ -96,8 +96,12 @@ const handleApiResponse = <T>(response: AxiosResponse<any>): T => {
 
 // Helper to handle API errors
 const handleApiError = (error: any): never => {
+    console.error("API Error Details:", error)
+    
     // If it's an AxiosError with a response
     if (axios.isAxiosError(error) && error.response?.data) {
+        console.error("API Error Response:", error.response.data)
+        
         // If the response follows our expected error format
         if (error.response.data.status === "error") {
             throw new Error(error.response.data.message || "An error occurred")
@@ -129,7 +133,6 @@ export const removeAuthToken = (): void => {
 
 // Register a new user
 // POST {{base_url}}/auth/register
-// Register a new user and automatically authenticate
 export const registerUser = async (
     email: string,
     username: string,
@@ -172,34 +175,68 @@ export const loginUser = async (email: string, password: string) => {
     }
 }
 
-// External login (OAuth)
-// POST {{base_url}}/auth/external-login
+// External login (OAuth) - Fixed to use oauth_id and proper response handling
 export const externalLogin = async (
-    oauth_id: string,
-    oauth_provider: string,
-    is_agree_terms: boolean,
-    is_sexual_disease: boolean,
+    oauth_id: string, // This is the id_token from Google
+    oauth_provider: string = "google",
+    is_agree_terms: boolean = true,
+    is_sexual_disease: boolean = false,
 ) => {
     try {
-        const response = await api.post("/auth/external-login", {
-            oauth_id,
+        console.log("Calling externalLogin with:", {
+            oauth_id: oauth_id.substring(0, 50) + "...", // Only log first 50 chars for security
             oauth_provider,
             is_agree_terms,
             is_sexual_disease,
         })
 
-        const data = handleApiResponse<{ account: any; token: string }>(
-            response,
-        )
+        const response = await api.post("/auth/external-login", {
+            oauth_id, // Send the id_token as oauth_id
+            oauth_provider,
+            is_agree_terms,
+            is_sexual_disease,
+        })
 
-        // Store the token in cookies
-        if (data.token) {
-            setAuthToken(data.token)
+        console.log("External login raw response:", response.data)
+
+        // Handle the response based on backend format
+        const responseData = response.data
+        
+        if (responseData.status === "success" && responseData.data) {
+            const data = responseData.data
+            
+            console.log("External login processed data:", data)
+
+            // Store the token in cookies - get token from data.token
+            if (data.token) {
+                setAuthToken(data.token)
+                console.log("Backend token stored successfully")
+            }
+
+            return data // Return the full data object with account and token
+        } else {
+            throw new Error(responseData.message || "External login failed")
         }
 
-        return data
     } catch (error) {
+        console.error("External login error:", error)
         return handleApiError(error)
+    }
+}
+
+// Function to handle NextAuth session and sync with your backend
+export const syncNextAuthSession = async (session: any) => {
+    try {
+        if (session?.backendToken) {
+            console.log("Syncing NextAuth session with backend token")
+            // Set the backend token in cookies
+            setAuthToken(session.backendToken)
+            return session.accountData
+        }
+        return null
+    } catch (error) {
+        console.error("Error syncing NextAuth session:", error)
+        return null
     }
 }
 
@@ -263,8 +300,6 @@ export const logoutUser = async () => {
 
 // Create email verification (request OTP)
 // POST {{base_url}}/email/create-verification
-// Create email verification (request OTP)
-// POST {{base_url}}/email/create-verification
 export const createEmailVerification = async (email: string) => {
     try {
         const response = await api.post("/email/create-verification", { email })
@@ -291,7 +326,7 @@ export const verifyEmail = async (email: string, token: number | string) => {
 // USER PROFILE FUNCTIONS
 
 // Get user profile
-// GET {{base_url}}/user/profile
+// GET {{base_url}}/user/me
 export const getUserProfile = async () => {
     try {
         const response = await api.get("/user/me")
@@ -306,37 +341,16 @@ export const updateUserProfile = async (profileData: UserProfileUpdateData) => {
         console.log("Updating profile with data:", profileData)
         console.log("Using token:", getAuthToken())
 
-        const headers = {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + getAuthToken() || "",
-        }
-        console.log("Request headers:", headers)
+        // Use the axios instance instead of fetch for consistency
+        const response = await api.put("/user/me", profileData)
 
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/me`,
-            {
-                method: "PUT",
-                headers: headers,
-                body: JSON.stringify(profileData),
-            },
-        )
+        console.log("Profile update raw response:", response.data)
 
-        const responseText = await response.text()
-        console.log("Raw response:", responseText)
+        const data = handleApiResponse(response)
 
-        let responseData
-        try {
-            responseData = JSON.parse(responseText)
-        } catch (e) {
-            console.error("Failed to parse response:", e)
-            throw new Error("Invalid response format from server")
-        }
+        console.log("Profile update processed data:", data)
 
-        if (!response.ok) {
-            throw new Error(responseData?.message || "Failed to update profile")
-        }
-
-        return responseData.data
+        return data
     } catch (error) {
         console.error("Profile update error:", error)
         return handleApiError(error)

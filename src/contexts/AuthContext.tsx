@@ -8,7 +8,8 @@ import React, {
     ReactNode,
 } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { getAuthToken, removeAuthToken } from "@/lib/api"
+import { useSession } from "next-auth/react"
+import { getAuthToken, removeAuthToken, syncNextAuthSession } from "@/lib/api"
 import { toast } from "@/hooks/use-toast"
 import Cookies from "js-cookie"
 
@@ -56,6 +57,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false)
     const router = useRouter()
     const pathname = usePathname()
+    
+    // Use NextAuth session
+    const { data: session, status: sessionStatus } = useSession()
 
     // Add functions to directly set verification status
     const setEmailVerified = (value: boolean) => {
@@ -76,7 +80,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     }
 
-    // Function to parse JWT and extract data
     // Function to parse JWT
     const parseJwt = (token: string) => {
         try {
@@ -101,9 +104,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     }
 
-    // Update refreshUserData function to better handle token issues
+    // Update refreshUserData function to handle both NextAuth and regular auth
     const refreshUserData = async (): Promise<void> => {
         try {
+            // Check if we have a NextAuth session first
+            if (session?.backendToken && session?.accountData) {
+                console.log("Using NextAuth session with backend data")
+                
+                const accountData = session.accountData
+                
+                setUser({
+                    id: accountData.id,
+                    username: accountData.username || "",
+                    email: accountData.email,
+                    avatar: session.user?.image || "",
+                    fullName: session.user?.name || "",
+                    schoolName: "",
+                    province: "",
+                    city: "",
+                    phoneNumber: "",
+                    isEmailVerified: accountData.is_email_verified || true, // OAuth users are usually verified
+                    isProfileComplete: accountData.is_detail_completed || false,
+                })
+                
+                setIsAuthenticated(true)
+                setIsLoading(false)
+                return
+            }
+
+            // Fallback to regular token-based auth
             const token = getAuthToken()
             console.log(
                 "Refreshing user data with token:",
@@ -119,7 +148,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             // Verify token before making API call
             try {
-                // Decode JWT to check if it's not expired
                 const tokenData = parseJwt(token)
                 const currentTime = Math.floor(Date.now() / 1000)
 
@@ -130,7 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
                 // Make API call with valid token
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/user/me`,
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/me`,
                     {
                         method: "GET",
                         headers: {
@@ -140,19 +168,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     },
                 )
 
-                // Check response
                 if (!response.ok) {
                     const text = await response.text()
                     console.log("API error response:", text)
                     throw new Error(`API error: ${response.status}`)
                 }
 
-                // Parse response
                 const text = await response.text()
                 console.log("Raw response:", text)
                 const userData = JSON.parse(text)
 
-                // Process user data
                 if (userData && userData.data && userData.data.account) {
                     const account = userData.data.account
                     const details = userData.data.details || {}
@@ -176,27 +201,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             } catch (error) {
                 console.error("Error fetching user profile:", error)
 
-                // Handle token-related errors
                 if (
                     error instanceof Error &&
                     (error.message.includes("Token expired") ||
                         error.message.includes("API error: 401"))
                 ) {
-                    // Clear token and authentication state
-                    console.log("Ini serius mau dihapus auth nya??")
-                    // removeAuthToken()
-                    // setUser(null)
-                    // setIsAuthenticated(false)
-
-                    // Don't redirect here - let the routing effect handle it
+                    console.log("Authentication failed, clearing tokens")
+                    // Don't clear tokens here, let the routing effect handle it
                 } else {
-                    // For other errors, try to maintain authentication if possible
                     const storedProfileComplete =
                         localStorage.getItem("profile_completed") === "true"
                     const storedEmailVerified =
                         localStorage.getItem("email_verified") === "true"
 
-                    // Create minimal user data
                     setUser({
                         username: "User",
                         email: "",
@@ -216,18 +233,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     }
 
-    // Initial data load
+    // Initial data load - wait for NextAuth session to load
     useEffect(() => {
+        if (sessionStatus === "loading") {
+            return // Wait for NextAuth session to load
+        }
+        
         const checkAuthentication = async () => {
             await refreshUserData()
         }
 
         checkAuthentication()
-    }, [])
+    }, [session, sessionStatus])
 
     // Handle routing based on authentication and profile completion
     useEffect(() => {
-        if (isLoading) return
+        if (isLoading || sessionStatus === "loading") return
 
         console.log("Auth state check:", {
             isAuthenticated,
@@ -235,10 +256,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isProfileComplete: user?.isProfileComplete,
             isEmailVerified: user?.isEmailVerified,
             user,
+            session: !!session,
+            sessionStatus,
         })
 
         // Override email verification status for testing
-        // COMMENT THIS OUT AFTER DEBUGGING
         if (user && !user.isEmailVerified) {
             const shouldOverride =
                 localStorage.getItem("override_verification") === "true"
@@ -248,11 +270,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 )
                 setEmailVerified(true)
                 localStorage.setItem("email_verified", "true")
-                return // Don't proceed with redirects on this render
+                return
             }
         }
 
-        // List of public paths that don't require authentication
         const publicPaths = [
             "/login",
             "/register",
@@ -260,25 +281,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             "/verify-email",
         ]
 
-        // Check if we're on a public path
         const isOnPublicPath = publicPaths.some(
             (path) => pathname === path || pathname.startsWith(`${path}/`),
         )
 
-        // If on a public path, don't redirect
         if (isOnPublicPath) return
 
-        // If not authenticated and not on a public path, redirect to login
-        if (!isAuthenticated) {
+        // Check if user is authenticated (either via session or token)
+        const hasAuthentication = isAuthenticated || session?.backendToken
+
+        if (!hasAuthentication) {
             console.log("Not authenticated, redirecting to login")
             router.push("/login")
             return
         }
 
-        // Handle routing based on user data if available
         if (user) {
-            // If authenticated but email not verified, redirect to verify-email
-            if (!user.isEmailVerified && !pathname.includes("/verify-email")) {
+            // OAuth users skip email verification
+            if (!user.isEmailVerified && !pathname.includes("/verify-email") && !session?.user) {
                 console.log("Email not verified, redirecting to verify-email")
                 router.push(
                     `/verify-email?email=${encodeURIComponent(user.email)}`,
@@ -286,8 +306,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return
             }
 
-            // If authenticated and email verified but profile not complete,
-            // redirect to complete-profile (unless already there)
             if (
                 user.isEmailVerified &&
                 !user.isProfileComplete &&
@@ -300,16 +318,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return
             }
         }
-    }, [isAuthenticated, isLoading, user, pathname, router])
+    }, [isAuthenticated, isLoading, user, pathname, router, session, sessionStatus])
 
     const logout = async () => {
         try {
-            // Clear all Auth data
+            // Clear all auth data
             Cookies.remove("quzuu_auth_token", { path: "/" })
             localStorage.removeItem("email_verified")
             localStorage.removeItem("profile_completed")
             setUser(null)
             setIsAuthenticated(false)
+
+            // If using NextAuth, sign out from NextAuth as well
+            if (session) {
+                const { signOut } = await import("next-auth/react")
+                await signOut({ redirect: false })
+            }
 
             toast({
                 title: "Logged Out",
@@ -320,7 +344,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } catch (error) {
             console.error("Logout failed:", error)
 
-            // Even if API call fails, clear local data
             Cookies.remove("quzuu_auth_token", { path: "/" })
             localStorage.removeItem("email_verified")
             localStorage.removeItem("profile_completed")
@@ -336,7 +359,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             value={{
                 user,
                 isLoading,
-                isAuthenticated,
+                isAuthenticated: isAuthenticated || !!session?.backendToken,
                 logout,
                 refreshUserData,
                 setEmailVerified,

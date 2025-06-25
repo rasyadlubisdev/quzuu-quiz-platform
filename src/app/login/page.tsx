@@ -7,7 +7,7 @@ import { z } from "zod"
 
 import { useRouter } from "next/navigation"
 import { loginUser } from "@/lib/api"
-import { useAuth } from "@/contexts/AuthContext" // Import useAuth hook
+import { useAuth } from "@/contexts/AuthContext"
 
 import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -22,8 +22,8 @@ import {
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import Link from "next/link"
+import GoogleSignInButton from "@/components/GoogleSignInButton"
 
-// Update form schema to use email instead of username
 const FormSchema = z.object({
     email: z.string().email({ message: "Please enter a valid email address." }),
     password: z.string().min(7, {
@@ -35,7 +35,7 @@ const Login = () => {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState("")
-    const { refreshUserData } = useAuth() // Get refreshUserData from context
+    const { refreshUserData } = useAuth()
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -52,13 +52,9 @@ const Login = () => {
         try {
             console.log("Attempting login with:", { email: data.email })
 
-            // Call loginUser with email and password
             const response = await loginUser(data.email, data.password)
             console.log("Login response:", response)
 
-            // loginUser will automatically store the token in cookies
-
-            // After successful login, refresh user data in context
             await refreshUserData()
 
             toast({
@@ -66,7 +62,6 @@ const Login = () => {
                 description: "Welcome back to Quzuu!",
             })
 
-            // If the account is not verified, redirect to email verification
             if (
                 response.account &&
                 response.account.is_email_verified === false
@@ -77,7 +72,6 @@ const Login = () => {
                 return
             }
 
-            // If profile is not complete, redirect to complete profile
             if (
                 response.account &&
                 response.account.is_detail_completed === false
@@ -86,7 +80,6 @@ const Login = () => {
                 return
             }
 
-            // Otherwise redirect to home
             router.push("/")
         } catch (error: any) {
             console.error("Login error:", error)
@@ -125,6 +118,20 @@ const Login = () => {
                 <p className="text-slate-500 mb-8">
                     Enter your email and password to continue.
                 </p>
+
+                {/* Google Sign-In Button */}
+                <div className="w-2/3 mb-6">
+                    <GoogleSignInButton disabled={loading} />
+                </div>
+
+                {/* Divider */}
+                <div className="w-2/3 flex items-center mb-6">
+                    <div className="flex-1 border-t border-gray-300"></div>
+                    <span className="px-4 text-gray-500 text-sm">or</span>
+                    <div className="flex-1 border-t border-gray-300"></div>
+                </div>
+
+                {/* Email/Password Form */}
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}

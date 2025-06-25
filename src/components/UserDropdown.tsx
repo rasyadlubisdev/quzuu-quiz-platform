@@ -70,27 +70,58 @@ const UserDropdown: React.FC = () => {
         )
     }
 
+    // Component for user avatar with fallback
+    const UserAvatar = ({ src, alt, size = 32 }: { src?: string; alt: string; size?: number }) => {
+        if (src && src.includes('googleusercontent.com')) {
+            // Use regular img tag for Google avatars to avoid Next.js config issues
+            return (
+                <img
+                    src={src}
+                    alt={alt}
+                    width={size}
+                    height={size}
+                    className="rounded-full object-cover"
+                    onError={(e) => {
+                        // Fallback to icon if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                />
+            )
+        } else if (src) {
+            // Use Next.js Image for other sources
+            return (
+                <Image
+                    src={src}
+                    alt={alt}
+                    width={size}
+                    height={size}
+                    className="rounded-full object-cover"
+                />
+            )
+        } else {
+            // Fallback to icon
+            return <UserCircle className={`h-${size/4} w-${size/4} text-white`} />
+        }
+    }
+
     return (
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center space-x-2 p-2 rounded-lg hover:bg-violet-600 transition-colors"
             >
-                {user.avatar ? (
-                    <div className="h-8 w-8 rounded-full overflow-hidden">
-                        <Image
-                            src={user.avatar}
-                            alt={user.name}
-                            width={32}
-                            height={32}
-                            className="object-cover"
-                        />
-                    </div>
-                ) : (
-                    <UserCircle className="h-8 w-8 text-white" />
-                )}
+                <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center">
+                    <UserAvatar 
+                        src={user.avatar} 
+                        alt={user.fullName || user.username || "User"} 
+                        size={32} 
+                    />
+                    <UserCircle className="h-8 w-8 text-white hidden" />
+                </div>
                 <span className="text-white hidden sm:block max-w-[100px] truncate">
-                    {user.name}
+                    {user.fullName || user.username}
                 </span>
                 <ChevronDown className="h-4 w-4 text-white" />
             </button>
@@ -98,10 +129,24 @@ const UserDropdown: React.FC = () => {
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg overflow-hidden z-50">
                     <div className="p-4 border-b">
-                        <p className="font-medium text-gray-800">{user.name}</p>
-                        <p className="text-sm text-gray-500 truncate">
-                            {user.email}
-                        </p>
+                        <div className="flex items-center space-x-3">
+                            <div className="h-12 w-12 rounded-full overflow-hidden flex items-center justify-center">
+                                <UserAvatar 
+                                    src={user.avatar} 
+                                    alt={user.fullName || user.username || "User"} 
+                                    size={48} 
+                                />
+                                <UserCircle className="h-12 w-12 text-gray-400 hidden" />
+                            </div>
+                            <div>
+                                <p className="font-medium text-gray-800">
+                                    {user.fullName || user.username}
+                                </p>
+                                <p className="text-sm text-gray-500 truncate">
+                                    {user.email}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     {!user.isEmailVerified && (
