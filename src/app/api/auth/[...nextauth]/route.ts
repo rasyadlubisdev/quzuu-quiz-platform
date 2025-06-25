@@ -51,7 +51,6 @@ const handler = NextAuth({
                     console.log("✅ ID token received, calling backend with oauth_id...")
 
                     // Call your backend API to handle OAuth login
-                    // Send id_token as oauth_id (as per your backend expectation)
                     const response = await externalLogin(
                         account.id_token, // Send id_token as oauth_id
                         "google",
@@ -61,11 +60,11 @@ const handler = NextAuth({
                     
                     console.log("✅ Backend OAuth response:", response)
                     
-                    // Store the backend data for later use
+                    // REMOVE setAuthToken from here - it won't work on server-side
+                    // Instead, store the token data in the user object for JWT callback
                     user.backendToken = response.token
                     user.accountData = response.account
                     
-                    // Log important user data for debugging
                     console.log("✅ User authentication data:", {
                         id: response.account.id,
                         email: response.account.email,
@@ -77,14 +76,13 @@ const handler = NextAuth({
                     return true
                 } catch (error) {
                     console.error("❌ OAuth login failed:", error)
-                    // Return false to show error page
                     return false
                 }
             }
             return true
         },
         async jwt({ token, user, account }) {
-            // Store backend token in JWT
+            // Store backend token in JWT for client-side access
             if (user?.backendToken) {
                 console.log("🎫 Storing backend data in JWT")
                 token.backendToken = user.backendToken
@@ -93,7 +91,7 @@ const handler = NextAuth({
             return token
         },
         async session({ session, token }) {
-            // Pass backend token to session
+            // Pass backend token to session so client can access it
             if (token.backendToken) {
                 console.log("📋 Adding backend data to session")
                 session.backendToken = token.backendToken
@@ -105,6 +103,12 @@ const handler = NextAuth({
     pages: {
         signIn: "/login",
         error: "/login", // Redirect to login on error
+    },
+    events: {
+        // This runs on client-side after successful sign in
+        async signIn(message) {
+            console.log("🎉 Client-side signIn event triggered")
+        }
     },
     debug: process.env.NODE_ENV === "development",
 })

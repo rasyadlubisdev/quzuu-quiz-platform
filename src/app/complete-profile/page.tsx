@@ -48,7 +48,7 @@ const FormSchema = z.object({
 export default function CompleteProfile() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
-    const { user, refreshUserData } = useAuth()
+    const { user, refreshUserData, setProfileComplete } = useAuth()
 
     // Initialize form with default values
     const form = useForm<z.infer<typeof FormSchema>>({
@@ -67,7 +67,8 @@ export default function CompleteProfile() {
         setLoading(true)
 
         try {
-            console.log("Submitting profile data:", data)
+            console.log("🚀 Starting profile update process...")
+            console.log("📝 Form data:", data)
 
             // Format the phone number if needed
             let formattedPhoneNumber = data.phone_number
@@ -91,70 +92,131 @@ export default function CompleteProfile() {
                 avatar: data.avatar || "avatar.png",
             }
 
-            console.log("Sending profile data to API:", profileData)
+            console.log("📤 Sending profile data to API:", profileData)
 
             // Check if token exists
             const token = getAuthToken()
             if (!token) {
-                toast({
-                    variant: "destructive",
-                    title: "Authentication Error",
-                    description: "You need to login first",
-                })
-                router.push("/login")
-                return
+                throw new Error("Authentication token not found. Please login again.")
+            }
+
+            console.log("🔑 Auth token present:", token.substring(0, 20) + "...")
+
+            // Define the expected result type for type safety
+            type UpdateProfileResult = {
+                account?: { is_detail_completed?: boolean }
+                is_detail_completed?: boolean
+                [key: string]: any
             }
 
             // Update profile via API
-            const result = await updateUserProfile(profileData)
-            console.log("Profile update result:", result)
+            console.log("📡 Calling API...")
+            const result = await updateUserProfile(profileData) as UpdateProfileResult
+            console.log("✅ API call successful, result:", result)
 
-            // Manually set profile as complete
+            // Check if backend returned is_detail_completed: true
+            const backendProfileComplete = result?.account?.is_detail_completed || 
+                                         result?.is_detail_completed || 
+                                         false
+
+            console.log("🔍 Backend profile complete status:", backendProfileComplete)
+
+            // Set profile as complete in localStorage for persistence
             localStorage.setItem("profile_completed", "true")
+            console.log("💾 Set profile_completed in localStorage")
 
-            // Refresh user data to update context
-            await refreshUserData()
+            // Update context immediately
+            setProfileComplete(true)
+            console.log("🔄 Updated context profileComplete to true")
 
+            // Show success toast
             toast({
                 title: "Profile Updated",
-                description:
-                    "Your profile details have been saved successfully.",
+                description: "Your profile details have been saved successfully.",
             })
 
-            // Redirect to home page after successful profile update
-            router.push("/")
+            if (backendProfileComplete) {
+                console.log("✅ Backend confirms profile is complete, refreshing data...")
+                
+                // Backend confirms profile is complete, safe to refresh
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                await refreshUserData()
+                
+                // Redirect after refresh
+                setTimeout(() => {
+                    console.log("🏠 Redirecting to home page...")
+                    router.push("/")
+                }, 500)
+                
+            } else {
+                console.log("⚠️ Backend hasn't updated is_detail_completed flag yet")
+                console.log("🔧 Using manual context update and direct redirect")
+                
+                // Backend hasn't updated the flag yet, use manual approach
+                // Don't call refreshUserData() to avoid overriding our manual update
+                
+                // Wait a bit for visual feedback then redirect
+                setTimeout(() => {
+                    console.log("🏠 Direct redirect to home page (backend not updated yet)...")
+                    router.push("/")
+                }, 2000)
+            }
+
         } catch (error: any) {
-            console.error("Error updating profile:", error)
+            console.error("❌ Error updating profile:", error)
+
+            // Clear the manual localStorage flag if API failed
+            localStorage.removeItem("profile_completed")
 
             // Check if it's an authentication error
             if (
                 error.message?.includes("login") ||
-                error.message?.includes("auth")
+                error.message?.includes("auth") ||
+                error.message?.includes("token")
             ) {
                 toast({
                     variant: "destructive",
                     title: "Authentication Error",
-                    description:
-                        "Your session has expired. Please login again.",
+                    description: "Your session has expired. Please login again.",
                 })
 
-                console.log(error.message)
-
-                // // Clear token and redirect to login
-                // removeAuthToken()
-                // router.push("/login")
+                console.log("🔓 Auth error detected, redirecting to login...")
+                removeAuthToken()
+                router.push("/login")
             } else {
                 toast({
                     variant: "destructive",
                     title: "Failed to Update Profile",
-                    description:
-                        error.message ||
-                        "An error occurred while updating your profile.",
+                    description: error.message || "An error occurred while updating your profile.",
                 })
             }
         } finally {
             setLoading(false)
         }
+    }
+
+    // Debug button for testing
+    const handleDebugInfo = () => {
+        console.log("🔍 Debug Info:", {
+            user,
+            formValues: form.getValues(),
+            token: getAuthToken()?.substring(0, 20) + "...",
+            localStorage: {
+                profile_completed: localStorage.getItem("profile_completed"),
+                email_verified: localStorage.getItem("email_verified"),
+            }
+        })
+    }
+
+    // Force complete profile for testing
+    const handleForceComplete = () => {
+        console.log("🔧 Force completing profile...")
+        localStorage.setItem("profile_completed", "true")
+        setProfileComplete(true)
+        
+        setTimeout(() => {
+            router.push("/")
+        }, 1000)
     }
 
     return (
@@ -265,13 +327,35 @@ export default function CompleteProfile() {
                         </div>
 
                         <div className="flex justify-between pt-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => router.push("/")}
-                            >
-                                Skip for Now
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => router.push("/")}
+                                >
+                                    Skip for Now
+                                </Button>
+                                
+                                {/* Debug buttons - remove in production */}
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={handleDebugInfo}
+                                    className="text-xs"
+                                >
+                                    Debug
+                                </Button>
+                                
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={handleForceComplete}
+                                    className="text-xs text-green-600"
+                                >
+                                    Force Complete
+                                </Button>
+                            </div>
+                            
                             <Button type="submit" disabled={loading}>
                                 {loading ? "Saving..." : "Save Profile"}
                             </Button>

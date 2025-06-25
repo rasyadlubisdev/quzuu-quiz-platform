@@ -9,7 +9,6 @@ interface UserData {
     avatar?: string
     is_email_verified?: boolean
     is_detail_completed?: boolean
-    // Add other properties that might be in your user data
 }
 
 export interface UserProfileUpdateData {
@@ -27,7 +26,7 @@ export const api = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
-    withCredentials: true, // This ensures cookies are sent with requests
+    withCredentials: true,
 })
 
 // Cookie configuration
@@ -44,8 +43,7 @@ api.interceptors.request.use(
     (config) => {
         const token = getAuthToken()
         if (token && config.headers) {
-            // Update header based on Postman documentation
-            config.headers["Auth-Bearer-Token"] = token
+            config.headers["Authorization"] = "Bearer " + token
         }
         return config
     },
@@ -56,12 +54,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
-        // Handle unauthorized errors (401)
         if (error.response?.status === 401) {
-            // Clear the auth token
             removeAuthToken()
-
-            // Redirect to login if we're in a browser environment
             if (typeof window !== "undefined") {
                 window.location.href = "/login"
             }
@@ -70,16 +64,8 @@ api.interceptors.response.use(
     },
 )
 
-// Helper to handle API responses in a consistent way
+// Helper to handle API responses
 const handleApiResponse = <T>(response: AxiosResponse<any>): T => {
-    // Based on the API contract, responses look like:
-    // {
-    //   "status": "success",
-    //   "message": "Data retrieved successfully!",
-    //   "data": { ... },
-    //   "meta_data": {}
-    // }
-
     if (
         response.data &&
         (response.data.status === "success" || response.data.status === "error")
@@ -89,8 +75,6 @@ const handleApiResponse = <T>(response: AxiosResponse<any>): T => {
         }
         return response.data.data
     }
-
-    // If the response doesn't follow our format, just return the data
     return response.data
 }
 
@@ -98,41 +82,47 @@ const handleApiResponse = <T>(response: AxiosResponse<any>): T => {
 const handleApiError = (error: any): never => {
     console.error("API Error Details:", error)
     
-    // If it's an AxiosError with a response
     if (axios.isAxiosError(error) && error.response?.data) {
         console.error("API Error Response:", error.response.data)
         
-        // If the response follows our expected error format
         if (error.response.data.status === "error") {
             throw new Error(error.response.data.message || "An error occurred")
         }
-        // Otherwise throw a generic error with the status text
         throw new Error(error.response.statusText || "An error occurred")
     }
 
-    // If it's some other kind of error, just throw it
     throw error
 }
 
-// Set the auth token in cookies
+// Set the auth token in cookies (CLIENT-SIDE ONLY)
 export const setAuthToken = (token: string): void => {
-    Cookies.set(JWT_COOKIE_NAME, token, COOKIE_OPTIONS)
+    // Add check to ensure this only runs on client-side
+    if (typeof window !== "undefined") {
+        console.log("🍪 Setting auth token in cookies (client-side)")
+        Cookies.set(JWT_COOKIE_NAME, token, COOKIE_OPTIONS)
+        console.log("🍪 Token set successfully:", !!Cookies.get(JWT_COOKIE_NAME))
+    } else {
+        console.warn("⚠️ setAuthToken called on server-side, skipping...")
+    }
 }
 
 // Get the auth token from cookies
 export const getAuthToken = (): string | null => {
-    return Cookies.get(JWT_COOKIE_NAME) || null
+    if (typeof window !== "undefined") {
+        return Cookies.get(JWT_COOKIE_NAME) || null
+    }
+    return null
 }
 
 // Remove the auth token from cookies
 export const removeAuthToken = (): void => {
-    Cookies.remove(JWT_COOKIE_NAME, { path: "/" })
+    if (typeof window !== "undefined") {
+        Cookies.remove(JWT_COOKIE_NAME, { path: "/" })
+    }
 }
 
 // AUTHENTICATION FUNCTIONS
 
-// Register a new user
-// POST {{base_url}}/auth/register
 export const registerUser = async (
     email: string,
     username: string,
@@ -144,15 +134,12 @@ export const registerUser = async (
             username,
             password,
         })
-
         return handleApiResponse(response)
     } catch (error) {
         return handleApiError(error)
     }
 }
 
-// Login user
-// POST {{base_url}}/auth/login
 export const loginUser = async (email: string, password: string) => {
     try {
         const response = await api.post("/auth/login", {
@@ -160,11 +147,8 @@ export const loginUser = async (email: string, password: string) => {
             password,
         })
 
-        const data = handleApiResponse<{ account: any; token: string }>(
-            response,
-        )
+        const data = handleApiResponse<{ account: any; token: string }>(response)
 
-        // Store the token in cookies
         if (data.token) {
             setAuthToken(data.token)
         }
@@ -175,23 +159,23 @@ export const loginUser = async (email: string, password: string) => {
     }
 }
 
-// External login (OAuth) - Fixed to use oauth_id and proper response handling
+// External login (OAuth) - Updated for server-side use
 export const externalLogin = async (
-    oauth_id: string, // This is the id_token from Google
+    oauth_id: string,
     oauth_provider: string = "google",
     is_agree_terms: boolean = true,
     is_sexual_disease: boolean = false,
 ) => {
     try {
         console.log("Calling externalLogin with:", {
-            oauth_id: oauth_id.substring(0, 50) + "...", // Only log first 50 chars for security
+            oauth_id: oauth_id.substring(0, 50) + "...",
             oauth_provider,
             is_agree_terms,
             is_sexual_disease,
         })
 
         const response = await api.post("/auth/external-login", {
-            oauth_id, // Send the id_token as oauth_id
+            oauth_id,
             oauth_provider,
             is_agree_terms,
             is_sexual_disease,
@@ -199,21 +183,16 @@ export const externalLogin = async (
 
         console.log("External login raw response:", response.data)
 
-        // Handle the response based on backend format
         const responseData = response.data
         
         if (responseData.status === "success" && responseData.data) {
             const data = responseData.data
-            
             console.log("External login processed data:", data)
 
-            // Store the token in cookies - get token from data.token
-            if (data.token) {
-                setAuthToken(data.token)
-                console.log("Backend token stored successfully")
-            }
-
-            return data // Return the full data object with account and token
+            // DON'T set token here - this will be handled on client-side
+            // The token will be stored via NextAuth session
+            
+            return data
         } else {
             throw new Error(responseData.message || "External login failed")
         }
@@ -224,24 +203,23 @@ export const externalLogin = async (
     }
 }
 
-// Function to handle NextAuth session and sync with your backend
+// NEW: Function to handle NextAuth session and sync with backend token
 export const syncNextAuthSession = async (session: any) => {
     try {
         if (session?.backendToken) {
-            console.log("Syncing NextAuth session with backend token")
-            // Set the backend token in cookies
+            console.log("🔄 Syncing NextAuth session with backend token")
+            // This will run on client-side, so setAuthToken will work
             setAuthToken(session.backendToken)
+            console.log("✅ Backend token synced to cookies")
             return session.accountData
         }
         return null
     } catch (error) {
-        console.error("Error syncing NextAuth session:", error)
+        console.error("❌ Error syncing NextAuth session:", error)
         return null
     }
 }
 
-// Change password
-// PUT {{base_url}}/auth/change-password
 export const changePassword = async (
     old_password: string,
     new_password: string,
@@ -251,15 +229,12 @@ export const changePassword = async (
             old_password,
             new_password,
         })
-
         return handleApiResponse(response)
     } catch (error) {
         return handleApiError(error)
     }
 }
 
-// Forgot password (request reset)
-// POST {{base_url}}/auth/forgot-password
 export const requestPasswordReset = async (email: string) => {
     try {
         const response = await api.post("/auth/forgot-password", { email })
@@ -269,8 +244,6 @@ export const requestPasswordReset = async (email: string) => {
     }
 }
 
-// Reset password with token
-// PUT {{base_url}}/auth/forgot-password
 export const resetPassword = async (token: number, new_password: string) => {
     try {
         const response = await api.put("/auth/forgot-password", {
@@ -283,23 +256,18 @@ export const resetPassword = async (token: number, new_password: string) => {
     }
 }
 
-// Logout user
 export const logoutUser = async () => {
     try {
-        // Call the backend to invalidate the token if needed
-        // await api.post('/auth/logout');
+        // Call backend logout if needed
     } catch (error) {
         console.error("Error during logout:", error)
     } finally {
-        // Always remove the token from cookies regardless of API success
         removeAuthToken()
     }
 }
 
 // EMAIL VERIFICATION FUNCTIONS
 
-// Create email verification (request OTP)
-// POST {{base_url}}/email/create-verification
 export const createEmailVerification = async (email: string) => {
     try {
         const response = await api.post("/email/create-verification", { email })
@@ -309,8 +277,6 @@ export const createEmailVerification = async (email: string) => {
     }
 }
 
-// Verify email with OTP
-// POST {{base_url}}/email/verify
 export const verifyEmail = async (email: string, token: number | string) => {
     try {
         const response = await api.post("/email/verify", {
@@ -325,8 +291,6 @@ export const verifyEmail = async (email: string, token: number | string) => {
 
 // USER PROFILE FUNCTIONS
 
-// Get user profile
-// GET {{base_url}}/user/me
 export const getUserProfile = async () => {
     try {
         const response = await api.get("/user/me")
@@ -338,29 +302,51 @@ export const getUserProfile = async () => {
 
 export const updateUserProfile = async (profileData: UserProfileUpdateData) => {
     try {
-        console.log("Updating profile with data:", profileData)
-        console.log("Using token:", getAuthToken())
+        console.log("📝 Updating profile with data:", profileData)
+        console.log("🔑 Using token:", getAuthToken()?.substring(0, 20) + "...")
 
-        // Use the axios instance instead of fetch for consistency
+        // Use the axios instance for consistency
         const response = await api.put("/user/me", profileData)
 
-        console.log("Profile update raw response:", response.data)
+        console.log("📨 Profile update raw response:", response.data)
 
-        const data = handleApiResponse(response)
-
-        console.log("Profile update processed data:", data)
-
-        return data
+        // Check if the response indicates success
+        if (response.data && response.data.status === "success") {
+            console.log("✅ Profile update successful!")
+            
+            // Return the processed data
+            const data = handleApiResponse(response)
+            console.log("📊 Profile update processed data:", data)
+            
+            return data
+        } else if (response.data && response.data.status === "error") {
+            console.error("❌ API returned error:", response.data.message)
+            throw new Error(response.data.message || "Profile update failed")
+        } else {
+            console.warn("⚠️ Unexpected response format:", response.data)
+            // Still try to process it
+            const data = handleApiResponse(response)
+            return data
+        }
     } catch (error) {
-        console.error("Profile update error:", error)
+        console.error("❌ Profile update error:", error)
+        
+        // Enhanced error logging
+        if (axios.isAxiosError(error)) {
+            console.error("🔍 Axios error details:", {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                headers: error.response?.headers,
+            })
+        }
+        
         return handleApiError(error)
     }
 }
 
-// Check if user is verified
 export const checkUserVerified = async () => {
     try {
-        // Get user profile which should include verification status
         const userData: any = await getUserProfile()
         return { verified: userData?.account?.is_email_verified || false }
     } catch (error) {
@@ -368,10 +354,8 @@ export const checkUserVerified = async () => {
     }
 }
 
-// Check if user has completed profile
 export const checkProfileComplete = async () => {
     try {
-        // Get user profile which should include profile completion status
         const userData: any = await getUserProfile()
         return { complete: userData?.account?.is_detail_completed || false }
     } catch (error) {
@@ -381,11 +365,8 @@ export const checkProfileComplete = async () => {
 
 // EVENT FUNCTIONS
 
-// Get list of events
-// GET {{base_url}}/events
 export const getEventList = async () => {
     try {
-        // Based on Postman documentation: GET with empty data payload
         const response = await api.get("/events", { data: {} })
         return handleApiResponse(response)
     } catch (error) {
@@ -393,14 +374,11 @@ export const getEventList = async () => {
     }
 }
 
-// Get event details
-// GET {{base_url}}/events/event-details
 export const getEventDetails = async (
     id_event: string,
     id_account: string | number,
 ) => {
     try {
-        // Based on Postman documentation: GET with data payload
         const response = await api.get("/events/event-details", {
             data: {
                 id_event,
@@ -413,11 +391,8 @@ export const getEventDetails = async (
     }
 }
 
-// Register for an event
-// POST {{base_url}}/events/register-event
 export const registerEvent = async (id_event: string, event_code: string) => {
     try {
-        // Updated endpoint based on Postman documentation
         const response = await api.post("/events/register-event", {
             id_event,
             event_code,
@@ -430,11 +405,8 @@ export const registerEvent = async (id_event: string, event_code: string) => {
 
 // PROBLEMSET FUNCTIONS
 
-// Get problemset list for an event
-// GET {{base_url}}/problemsets/lists
 export const getProblemsetList = async (id_event: string) => {
     try {
-        // Based on Postman documentation: GET with data payload
         const response = await api.get("/problemsets/lists", {
             data: { id_event },
         })
@@ -444,10 +416,8 @@ export const getProblemsetList = async (id_event: string) => {
     }
 }
 
-// Get questions for a specific problemset
 export const getQuestions = async (problemsetId: string) => {
     try {
-        // This endpoint might need to be updated based on complete API documentation
         const response = await api.get(`/problemsets/${problemsetId}/questions`)
         return handleApiResponse(response)
     } catch (error) {
@@ -457,11 +427,8 @@ export const getQuestions = async (problemsetId: string) => {
 
 // EXAM FUNCTIONS
 
-// Start an exam
-// GET {{base_url}}/exam/start
 export const startExam = async (id_problemset: string) => {
     try {
-        // Based on Postman documentation: GET endpoint
         const response = await api.get("/exam/start", {
             data: { id_problemset },
         })
@@ -471,13 +438,11 @@ export const startExam = async (id_problemset: string) => {
     }
 }
 
-// Submit exam answers
 export const submitExamAnswers = async (
     id_exam: string,
     answers: Record<string, any>,
 ) => {
     try {
-        // This endpoint might need to be updated based on complete API documentation
         const response = await api.post(`/exam/${id_exam}/submit`, { answers })
         return handleApiResponse(response)
     } catch (error) {
@@ -485,10 +450,8 @@ export const submitExamAnswers = async (
     }
 }
 
-// Get leaderboard data
 export const getLeaderboard = async (quizId: string) => {
     try {
-        // This endpoint might need to be updated based on complete API documentation
         const response = await api.get(`/quizzes/${quizId}/leaderboard`)
         return handleApiResponse(response)
     } catch (error) {
