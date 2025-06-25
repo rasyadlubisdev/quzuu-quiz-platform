@@ -88,7 +88,7 @@ export default function Home() {
             <section className="greetings py-11">
                 <h1 className="text-2xl font-normal">
                     👋 Welcome Back{" "}
-                    <span className="font-bold">{user?.name || "Guest"}</span>
+                    <span className="font-bold">{user?.username || user?.email || "Guest"}</span>
                 </h1>
             </section>
 
