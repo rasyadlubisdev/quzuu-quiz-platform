@@ -14,7 +14,7 @@ const QuizPage = () => {
                     #Bagian A : Pilihan Ganda dan Isian
                 </h3>
             </section>
-            <QuizContainer />
+            <QuizContainer examId="analitika" problemsetId="1" />
         </main>
     )
 }
