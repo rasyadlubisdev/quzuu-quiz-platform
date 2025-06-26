@@ -66,24 +66,27 @@ const QuizContainer: React.FC<{ examId?: string; problemsetId?: string }> = ({
                     const data: Question[] = await res.json()
                     setQuestions(data)
                 } else {
-                    // Use the API function in production
-                    // Use problemsetId parameter for fetching questions
-                    if (!problemsetId) {
-                        throw new Error(
-                            "Problem set ID is required to fetch questions",
-                        )
-                    }
+                    // // Use the API function in production
+                    // // Use problemsetId parameter for fetching questions
+                    // if (!problemsetId) {
+                    //     throw new Error(
+                    //         "Problem set ID is required to fetch questions",
+                    //     )
+                    // }
 
-                    // Define an interface for the questions response
-                    interface QuestionsResponse {
-                        questions?: any[] // Ideally define a more specific Question interface
-                        // Add other properties you expect in the response
-                    }
+                    // // Define an interface for the questions response
+                    // interface QuestionsResponse {
+                    //     questions?: any[] // Ideally define a more specific Question interface
+                    //     // Add other properties you expect in the response
+                    // }
 
-                    const data = (await getQuestions(
-                        problemsetId,
-                    )) as QuestionsResponse
-                    setQuestions(data.questions || [])
+                    // const data = (await getQuestions(
+                    //     problemsetId,
+                    // )) as QuestionsResponse
+                    // setQuestions(data.questions || [])
+                    const res = await fetch("/dummyQuestions.json")
+                    const data: Question[] = await res.json()
+                    setQuestions(data)
                 }
             } catch (error: any) {
                 console.error("Error fetching questions:", error)
