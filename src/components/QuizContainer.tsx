@@ -114,46 +114,54 @@ const QuizContainer: React.FC<{ examId?: string; problemsetId?: string }> = ({
         setIsSubmitting(true)
 
         try {
-            // In development mode, just simulate an API call
-            if (process.env.NODE_ENV === "development") {
-                await new Promise((r) => setTimeout(r, 1000))
-                setIsReviewMode(true)
+            await new Promise((r) => setTimeout(r, 1000))
+            setIsReviewMode(true)
 
-                toast({
-                    title: "Answers submitted",
-                    description:
-                        "Your answers have been submitted successfully",
-                })
-            } else {
-                // In production mode, use the actual API
-                // Use examId for submitting answers
-                if (!examId) {
-                    throw new Error("Exam ID is required to submit answers")
-                }
+            toast({
+                title: "Answers submitted",
+                description:
+                    "Your answers have been submitted successfully",
+            })
+            // // In development mode, just simulate an API call
+            // if (process.env.NODE_ENV === "development") {
+            //     await new Promise((r) => setTimeout(r, 1000))
+            //     setIsReviewMode(true)
 
-                // Define an interface for the exam submission response
-                interface ExamSubmissionResponse {
-                    message?: string
-                    success?: boolean
-                    score?: number
-                    // Add other properties you expect in the response
-                }
+            //     toast({
+            //         title: "Answers submitted",
+            //         description:
+            //             "Your answers have been submitted successfully",
+            //     })
+            // } else {
+            //     // In production mode, use the actual API
+            //     // Use examId for submitting answers
+            //     if (!examId) {
+            //         throw new Error("Exam ID is required to submit answers")
+            //     }
 
-                // Using submitExamAnswers instead of submitQuizAnswers
-                const result = (await submitExamAnswers(
-                    examId,
-                    userAnswers,
-                )) as ExamSubmissionResponse
+            //     // Define an interface for the exam submission response
+            //     interface ExamSubmissionResponse {
+            //         message?: string
+            //         success?: boolean
+            //         score?: number
+            //         // Add other properties you expect in the response
+            //     }
 
-                setIsReviewMode(true)
+            //     // Using submitExamAnswers instead of submitQuizAnswers
+            //     const result = (await submitExamAnswers(
+            //         examId,
+            //         userAnswers,
+            //     )) as ExamSubmissionResponse
 
-                toast({
-                    title: "Answers submitted",
-                    description:
-                        result.message ||
-                        "Your answers have been submitted successfully",
-                })
-            }
+            //     setIsReviewMode(true)
+
+            //     toast({
+            //         title: "Answers submitted",
+            //         description:
+            //             result.message ||
+            //             "Your answers have been submitted successfully",
+            //     })
+            // }
         } catch (error: any) {
             toast({
                 variant: "destructive",
